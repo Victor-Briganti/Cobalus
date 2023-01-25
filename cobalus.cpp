@@ -468,7 +468,7 @@ class BlockAST : public StmtAST {
                 if (!Block) {
                     return false;
                 }
-                Block->SearchFunc(IdName);
+                return Block->SearchFunc(IdName);
             }
             return true;
         }
