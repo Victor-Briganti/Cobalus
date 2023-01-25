@@ -342,6 +342,7 @@ enum TypeValue {
 
 // Forward declaration of class 
 class BlockAST;
+class FuncAST;
 
 // Base class for all expressions 
 class ExprAST {
@@ -386,8 +387,12 @@ class BlockAST : public StmtAST {
     // Map for variables 
     std::unordered_map<std::string, dynamic> ValMap;
     
+    // Map for functions 
+    std::unordered_map<std::string, std::shared_ptr<FuncAST>> FuncMap;
+
     // Control Flow 
     bool Loop;
+
 
     void DeepSetVar(std::string IdName, dynamic Value) {
         if (!ValMap.count(IdName)) {
@@ -444,7 +449,32 @@ class BlockAST : public StmtAST {
             }
             return Block->GetLoop();
         }
-        
+       
+        // Function methods
+        bool SearchFunc(std::string IdName) {
+            if(!FuncMap.count(IdName)) {
+                if (!Block) {
+                    return false;
+                }
+                Block->SearchFunc(IdName);
+            }
+            return true;
+        }
+
+        void SetFunc(std::string IdName, std::shared_ptr<FuncAST> Func) {
+            FuncMap[IdName] = std::move(Func);
+        }
+
+        std::shared_ptr<FuncAST> GetFunc(std::string IdName) {
+            if (!FuncMap.count(IdName)) {
+                if (!Block) {
+                    return nullptr;
+                }
+                Block->GetFunc(IdName);
+            }
+            return FuncMap[IdName];
+        }
+
         int Res() override;
 };
 
@@ -611,6 +641,73 @@ class BreakAST : public StmtAST {
 
     public:
         BreakAST(std::shared_ptr<BlockAST> Block) : Block(Block) {}
+
+        int Res() override;
+};
+
+// Class for functions 
+class FuncAST : public StmtAST {
+    std::string Name;
+    std::vector<std::string> Var;
+    std::unique_ptr<StmtAST> Exec;
+    std::shared_ptr<BlockAST> FuncEnv;
+
+    public:
+        FuncAST(std::string Name) : Name(Name) {}
+
+        bool SetVar(std::string PlaceHolder) {
+            if (std::find(Var.begin(), Var.end(), PlaceHolder) == Var.end()) {
+                Var.push_back(PlaceHolder);
+                return true;
+            }
+            return false;
+        }
+
+        void SetExec(std::unique_ptr<StmtAST> Stmt) {
+            Exec = std::move(Stmt);
+        }
+
+        void SetEnv(std::shared_ptr<BlockAST> Block) {
+            FuncEnv = Block;
+        }
+
+        int VarSize() {
+            return Var.size();
+        }
+
+        void ReassVar(std::vector<dynamic> Value) {
+            for(int i = 0; i < Var.size(); i++) {
+                FuncEnv->SetVar(Var[i], Value[i], 1);
+            }
+        }
+
+        int Res() override;
+};
+
+// Class for Dummy Function 
+// This class only exist to not break the flow of execution. It's used as a 
+// placeholder of a function 
+class DummyFuncAST : public StmtAST {
+    public :
+        DummyFuncAST() {}
+
+        int Res() override;
+};
+
+// Class for call
+// Derived from statement 
+class CallStmtAST : public StmtAST {
+    std::string Name;
+    std::vector<std::unique_ptr<ExprAST>> Var;
+    std::shared_ptr<BlockAST> Block;
+
+    public:
+        CallStmtAST(std::string Name, std::shared_ptr<BlockAST> Block) :
+            Name(Name), Block(std::move(Block)) {}
+
+        void SetVar(std::unique_ptr<ExprAST> E) {
+            Var.push_back(std::move(E));
+        }
 
         int Res() override;
 };
@@ -864,6 +961,36 @@ std::unique_ptr<StmtAST> ReassignParser(std::string IdName,
     return std::make_unique<VarReasAST>(IdName, std::move(E), CodeBlock);
 }
 
+// callstmt -> id '(' (expr ',')? ')'
+std::unique_ptr<StmtAST> CallStmtParser(std::string IdName, 
+                                        std::shared_ptr<BlockAST> CodeBlock) 
+{
+    if (!CodeBlock->SearchFunc(IdName)) {
+        return LogErrorS("function not defined");
+    }
+
+    getNextToken(); // consume '('
+
+    std::unique_ptr<CallStmtAST> Caller =
+        std::make_unique<CallStmtAST>(IdName, CodeBlock);
+
+    while(true) {
+        if(CurToken == ')') {
+            getNextToken(); // consume ')'
+            break;
+        } else if (CurToken == ',') {
+            getNextToken(); // consume ','
+        }
+        auto E = ExprParser(CodeBlock);
+        if (!E) {
+            return nullptr;
+        }
+        Caller->SetVar(std::move(E));
+    }
+
+    return std::move(Caller);
+}
+
 // idstmt -> reasstmt
 std::unique_ptr<StmtAST> IdStmtParser(std::shared_ptr<BlockAST> CodeBlock) {
     getNextToken(); // consume id 
@@ -872,6 +999,8 @@ std::unique_ptr<StmtAST> IdStmtParser(std::shared_ptr<BlockAST> CodeBlock) {
     switch (CurToken) {
         case token_atr:
             return ReassignParser(IdName, CodeBlock);
+        case '(':
+            return CallStmtParser(IdName, CodeBlock);
         default:
             LogErrorS("unexpected expression after identifier");
     }
@@ -1012,6 +1141,59 @@ std::unique_ptr<StmtAST> BreakParser(std::shared_ptr<BlockAST> CodeBlock) {
     return std::make_unique<BreakAST>(CodeBlock);
 }
 
+// funcstmt -> func id '(' (id ',') ')' stmt 
+std::unique_ptr<StmtAST> FuncParser(std::shared_ptr<BlockAST> CodeBlock) {
+    getNextToken(); // consume func 
+    
+    if (CurToken != token_id) {
+        return LogErrorS("expected identifier of function");
+    }
+    getNextToken(); // consume id 
+    std::string Name = Identifier;
+
+    if (CodeBlock->SearchFunc(Name)) {
+        return LogErrorS("function already defined");
+    }
+
+    if(CurToken != '(') {
+        return LogErrorS("expected '(' in func");
+    }
+    getNextToken(); // consume '('
+
+    std::shared_ptr<BlockAST> FuncBlock =
+        std::make_shared<BlockAST>(CodeBlock);
+    std::shared_ptr<FuncAST> Func = std::make_shared<FuncAST>(Name);
+
+    while(true) {
+        if (CurToken == ')') {
+            getNextToken(); // consume ')'
+            break;
+        } else if (CurToken == ',') {
+            getNextToken(); // consume ','
+        } else if (CurToken == token_id) {
+            getNextToken(); // consume id
+            if(!Func->SetVar(Identifier)) {
+                return LogErrorS("variable already defined in function");
+            }
+            dynamic Value = 'n';
+            FuncBlock->SetVar(Identifier, Value, 1);
+        } else {
+            return LogErrorS("function not properly defined");
+        }
+    }
+
+    auto Stmt = StmtParser(FuncBlock);
+    if (!Stmt) {
+        return nullptr;
+    }
+
+    Func->SetExec(std::move(Stmt));
+    Func->SetEnv(FuncBlock);
+
+    CodeBlock->SetFunc(Name, std::move(Func));
+    return std::make_unique<DummyFuncAST>();
+}
+
 // declstmt -> printstmt
 //             | varstmt
 //             | idstmt 
@@ -1020,6 +1202,7 @@ std::unique_ptr<StmtAST> BreakParser(std::shared_ptr<BlockAST> CodeBlock) {
 //             | whilestmt
 //             | forstmt
 //             | breakstmt
+//             | funcstmt
 std::unique_ptr<StmtAST> DeclarationParser(std::shared_ptr<BlockAST> CodeBlock) 
 {
     switch(CurToken) {
@@ -1039,6 +1222,8 @@ std::unique_ptr<StmtAST> DeclarationParser(std::shared_ptr<BlockAST> CodeBlock)
             return ForParser(CodeBlock);
         case token_break:
             return BreakParser(CodeBlock);
+        case token_func:
+            return FuncParser(CodeBlock);
         case ';':
             return nullptr;
         default:
@@ -1944,6 +2129,40 @@ int ForAST::Res() {
 
 int BreakAST::Res() {
     return ret_break;
+}
+
+int FuncAST::Res() {
+    if (!Exec) {
+        LogErrorD("function was not complete defined");
+    }
+    Exec->Res();
+    return -1;
+}
+
+int DummyFuncAST::Res() {
+    return -1;
+}
+
+int CallStmtAST::Res() {
+    std::shared_ptr<FuncAST> Func = Block->GetFunc(Name);
+
+    if (!Func) {
+        LogErrorD("function was not reconzed");
+    }
+
+    if (Var.size() != Func->VarSize()) {
+        LogErrorD("number of variables do not match");
+    }
+
+    std::vector<dynamic> Value;
+    for(int i = 0; i < Var.size(); i++) {
+        dynamic res = Var[i]->Res();
+        Value.push_back(res);
+    }
+
+    Func->ReassVar(std::move(Value));
+    Func->Res();
+    return -1;
 }
 
 // ============================================================================
