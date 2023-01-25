@@ -36,6 +36,7 @@
 #include <fstream> 
 #include <memory> 
 #include <string>
+#include <system_error>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -141,7 +142,6 @@ enum Token {
     // Binary complement
     // token_comp // ~
 };
-
 
 // ++++++++++++++++++++++++
 // +-----+ ANALYSIS +-----+
@@ -325,15 +325,23 @@ int Tokenizer() {
 
 // Enum for type of variable
 enum TypeValue {
+    // Variables 
     type_num,
     type_bool,
     type_str,
     type_null,
+
+    // Return types 
+    ret_break,
+    ret_value,
 };
 
 // +++++++++++++++++++++++
 // +-----+ CLASSES +-----+
 // +++++++++++++++++++++++
+
+// Forward declaration of class 
+class BlockAST;
 
 // Base class for all expressions 
 class ExprAST {
@@ -348,7 +356,7 @@ class StmtAST {
     public:
         // Default destructor 
         virtual ~StmtAST() = default;
-        virtual void Res() = 0;
+        virtual int Res() = 0;
 };
 
 // Classes for blocks
@@ -356,22 +364,30 @@ class StmtAST {
 class InsideAST : public StmtAST {
     std::unique_ptr<StmtAST> Next;
     std::unique_ptr<StmtAST> Exec;
+    std::shared_ptr<BlockAST> Block;
 
     public:
         InsideAST(std::unique_ptr<StmtAST> Next, 
-                std::unique_ptr<StmtAST> Exec)
-            : Next(std::move(Next)), Exec(std::move(Exec)) {}
+                std::unique_ptr<StmtAST> Exec,
+                std::shared_ptr<BlockAST> Block)
+            : Next(std::move(Next)), Exec(std::move(Exec)), Block(Block) {}
         
         void PointTo (std::unique_ptr<StmtAST> Point) {
             Next = std::move(Point);
         }
 
-        void Res() override;
+        int Res() override;
 };
 // Class for blocks 
 class BlockAST : public StmtAST {
-    std::unordered_map<std::string, dynamic> ValMap;
+    // Pointer to previous block
     std::shared_ptr<BlockAST> Block;
+    
+    // Map for variables 
+    std::unordered_map<std::string, dynamic> ValMap;
+    
+    // Control Flow 
+    bool Loop;
 
     void DeepSetVar(std::string IdName, dynamic Value) {
         if (!ValMap.count(IdName)) {
@@ -390,6 +406,7 @@ class BlockAST : public StmtAST {
     public:
         BlockAST(std::shared_ptr<BlockAST> Block) : Block(std::move(Block)) {}
 
+        // Variables methods
         void SetVar(std::string IdName, dynamic Value, int In) {
             if (!In) {
                 if (!ValMap.count(IdName)){
@@ -412,8 +429,23 @@ class BlockAST : public StmtAST {
             }
             return ValMap[IdName];
         }
+
+        // Loop methods 
+        void SetLoop(bool Value) { 
+            Loop = Value; 
+        }
+
+        bool GetLoop() {
+            if (Loop) {
+                return true;
+            }
+            if (!Block) {
+                return false;
+            }
+            return Block->GetLoop();
+        }
         
-        void Res() override;
+        int Res() override;
 };
 
 // Class for numbers
@@ -479,7 +511,7 @@ class PrintAST : public StmtAST {
     public:
         PrintAST(std::unique_ptr<ExprAST> Expr) : Expr(std::move(Expr)) {}
 
-        void Res() override;
+        int Res() override;
 };
 
 // Class for variables 
@@ -495,7 +527,7 @@ class VarDeclAST : public StmtAST {
             : Name(std::move(Name)), Value(std::move(Value)), 
               Block(std::move(Block)) {}
         
-        void Res() override;
+        int Res() override;
 };
 // Reassignig variable 
 class VarReasAST : public StmtAST {
@@ -508,7 +540,7 @@ class VarReasAST : public StmtAST {
                    std::shared_ptr<BlockAST> Block) 
             : Name(Name), Value(std::move(Value)), Block(std::move(Block)) {}
         
-        void Res() override;
+        int Res() override;
 };
 // Return variable value 
 class VarValAST : public ExprAST {
@@ -536,20 +568,22 @@ class IfAST : public StmtAST {
               IfBlock(std::move(IfBlock)), 
               ElseBlock(std::move(ElseBlock)) {}
 
-        void Res() override;
+        int Res() override;
 };
 
 // Class for while statments
 class WhileAST : public StmtAST {
     std::unique_ptr<ExprAST> Cond;
     std::unique_ptr<StmtAST> Loop;
-    
+    std::shared_ptr<BlockAST> Block;
+
     public:
         WhileAST(std::unique_ptr<ExprAST> Cond, 
-                 std::unique_ptr<StmtAST> Loop)
-            : Cond(std::move(Cond)), Loop(std::move(Loop)) {}
+                 std::unique_ptr<StmtAST> Loop,
+                 std::shared_ptr<BlockAST> Block)
+            : Cond(std::move(Cond)), Loop(std::move(Loop)), Block(Block) {}
 
-        void Res() override;
+        int Res() override;
 };
 
 // Class for for statmens 
@@ -558,14 +592,27 @@ class ForAST : public StmtAST {
     std::unique_ptr<ExprAST> Cond;
     std::unique_ptr<StmtAST> ExprIt;
     std::unique_ptr<StmtAST> Loop;
+    std::shared_ptr<BlockAST> Block;
 
     public:
         ForAST(std::unique_ptr<StmtAST> VarIt, std::unique_ptr<ExprAST> Cond,
-               std::unique_ptr<StmtAST> ExprIt, std::unique_ptr<StmtAST> Loop)
+               std::unique_ptr<StmtAST> ExprIt, std::unique_ptr<StmtAST> Loop,
+               std::shared_ptr<BlockAST> Block)
             : VarIt(std::move(VarIt)), Cond(std::move(Cond)), 
-            ExprIt(std::move(ExprIt)), Loop(std::move(Loop)) {}
+            ExprIt(std::move(ExprIt)), Loop(std::move(Loop)),
+            Block(Block) {}
 
-        void Res() override;
+        int Res() override;
+};
+
+// Class for break 
+class BreakAST : public StmtAST {
+    std::shared_ptr<BlockAST> Block;
+
+    public:
+        BreakAST(std::shared_ptr<BlockAST> Block) : Block(Block) {}
+
+        int Res() override;
 };
 
 // ============================================================================
@@ -818,7 +865,7 @@ std::unique_ptr<StmtAST> ReassignParser(std::string IdName,
 }
 
 // idstmt -> reasstmt
-std::unique_ptr<StmtAST> IdParser(std::shared_ptr<BlockAST> CodeBlock) {
+std::unique_ptr<StmtAST> IdStmtParser(std::shared_ptr<BlockAST> CodeBlock) {
     getNextToken(); // consume id 
     std::string IdName = Identifier;
 
@@ -845,7 +892,8 @@ std::unique_ptr<StmtAST> InsideParser(std::shared_ptr<BlockAST> CodeBlock) {
         return nullptr;
     }
 
-    return std::make_unique<InsideAST>(InsideParser(CodeBlock), std::move(S));
+    return std::make_unique<InsideAST>(InsideParser(CodeBlock), std::move(S),
+                                       CodeBlock);
 }
 
 // blockstmt -> '{' insidestmt '}'
@@ -908,7 +956,11 @@ std::unique_ptr<StmtAST> WhileParser(std::shared_ptr<BlockAST> CodeBlock) {
 
     auto Loop = StmtParser(CodeBlock);
 
-    return std::make_unique<WhileAST>(std::move(Cond), std::move(Loop));
+    // Block is in Loop state 
+    CodeBlock->SetLoop(true);
+
+    return std::make_unique<WhileAST>(std::move(Cond), std::move(Loop), 
+                                      CodeBlock);
 }
 
 // forstmt -> 'for' '(' stmt ',' expr ',' expr ')' stmt 
@@ -945,9 +997,19 @@ std::unique_ptr<StmtAST> ForParser(std::shared_ptr<BlockAST> CodeBlock) {
     getNextToken(); // consume ')'
 
     auto Loop = StmtParser(CurBlock);
+    
+    // Block is in loop state 
+    CodeBlock->SetLoop(true);
 
     return std::make_unique<ForAST>(std::move(Var), std::move(Cond), 
-                                    std::move(Interator), std::move(Loop));
+                                    std::move(Interator), std::move(Loop),
+                                    CodeBlock);
+}
+
+// breakstmt -> break 
+std::unique_ptr<StmtAST> BreakParser(std::shared_ptr<BlockAST> CodeBlock) {
+    getNextToken(); // consume break 
+    return std::make_unique<BreakAST>(CodeBlock);
 }
 
 // declstmt -> printstmt
@@ -957,6 +1019,7 @@ std::unique_ptr<StmtAST> ForParser(std::shared_ptr<BlockAST> CodeBlock) {
 //             | ifstmt
 //             | whilestmt
 //             | forstmt
+//             | breakstmt
 std::unique_ptr<StmtAST> DeclarationParser(std::shared_ptr<BlockAST> CodeBlock) 
 {
     switch(CurToken) {
@@ -965,7 +1028,7 @@ std::unique_ptr<StmtAST> DeclarationParser(std::shared_ptr<BlockAST> CodeBlock)
         case token_var:
             return VarAssignParser(CodeBlock);
         case token_id:
-            return IdParser(CodeBlock);
+            return IdStmtParser(CodeBlock);
         case '{':
             return BlockParser(CodeBlock);
         case token_if:
@@ -974,6 +1037,8 @@ std::unique_ptr<StmtAST> DeclarationParser(std::shared_ptr<BlockAST> CodeBlock)
             return WhileParser(CodeBlock);
         case token_for:
             return ForParser(CodeBlock);
+        case token_break:
+            return BreakParser(CodeBlock);
         case ';':
             return nullptr;
         default:
@@ -1007,21 +1072,37 @@ dynamic LogErrorD(std::string Err) {
 // +-----+ EXEC +-----+
 // ++++++++++++++++++++
 
-void BlockAST::Res() {
-    return;
+int BlockAST::Res() {
+    return -1;
 }
 
-void InsideAST::Res() {
+int InsideAST::Res() {
+    int verifier;
     if(!Next) {
         if (!Exec) {
-            return;
+            return -1;
         }
-        Exec->Res();
-        return;
+        verifier = Exec->Res();
+        if (verifier != -1) {
+            if (verifier == ret_break) {
+                if (!Block->GetLoop()) {
+                    LogErrorD("no loop to break from");
+                }
+            }
+            return verifier;
+        }
+        return -1;
     }
-    Exec->Res();
-    Next->Res();
-    return;
+    verifier = Exec->Res();
+    if (verifier != -1) {
+        if (verifier == ret_break) {
+            if (!Block->GetLoop()) {
+                LogErrorD("no loop to break from");
+            }
+            return verifier;
+        }
+    }
+    return Next->Res();
 }
 
 dynamic VarValAST::Res() {
@@ -1634,176 +1715,235 @@ dynamic OperationAST::Res() {
     return LogErrorD("operation not reconized");
 }
 
-void VarDeclAST::Res() {
+int VarDeclAST::Res() {
     if (!Value) {
         dynamic tmp = 'n';
         Block->SetVar(Name, std::move(tmp), 1);
-        return;
+        return -1;
     }
     Block->SetVar(Name, Value->Res(), 1);
-    return;
+    return -1;
 }
 
-void VarReasAST::Res() {
+int VarReasAST::Res() {
     Block->SetVar(Name, Value->Res(), 0);
-    return;
+    return -1;
 }
 
-void PrintAST::Res() {
+int PrintAST::Res() {
     dynamic show = Expr->Res();
 
     if (show.index() == type_bool) {
         if (std::get<bool>(show)) {
             std::cout << "True\n";
-            return;
+            return -1;
         }
         std::cout << "False\n";
-        return;
+        return -1;
     }
 
     if (show.index() == type_str) {
         std::cout << "'" << std::get<std::string>(show) << "'\n";
-        return;
+        return -1;
     }
 
     if (show.index() == type_null) {
         std::cout << "NULL\n";
-        return;
+        return -1;
     }
 
     std::cout << std::get<double>(show) << '\n';
-    return;
+    return -1;
 }
 
-void IfAST::Res() {
+int IfAST::Res() {
     dynamic result = Cond->Res();
 
     if (result.index() == type_null) {
         if (!ElseBlock) {
-            return;
+            return -1;
         }
         ElseBlock->Res();
-        return;
+        return -1;
     }
     
     if (result.index() == type_num) {
         if (!std::get<double>(result)) {
             if (!ElseBlock) {
-                return;
+                return -1;
             }
             ElseBlock->Res();
-            return;
+            return -1;
         }
         IfBlock->Res();
-        return;
+        return -1;
     }
 
     if (result.index() == type_bool) {
         if (!std::get<bool>(result)) {
             if (!ElseBlock) {
-                return;
+                return -1;
             }
             ElseBlock->Res();
-            return;
+            return -1;
         }
         IfBlock->Res();
-        return;
+        return -1;
     }
 
     if (result.index() == type_str) {
         IfBlock->Res();
-        return;
+        return -1;
     }
-    return;
+    return -1;
 }
 
-void WhileAST::Res() {
+int WhileAST::Res() {
     dynamic res = Cond->Res();
-    
+
     if (res.index() == type_bool){
         while (std::get<bool>(res) != 0) {
-            Loop->Res();
+            int verify = Loop->Res();
+            if (verify != -1) {
+                if (verify == ret_break) {
+                    Block->SetLoop(false);
+                    return -1;
+                }
+            }
             res = Cond->Res();
         }
     }
 
     if (res.index() == type_num) {
         while (std::get<double>(res) != 0) {
-            Loop->Res();
+            int verify = Loop->Res();
+            if (verify != -1) {
+                if (verify == ret_break) {
+                    Block->SetLoop(false);
+                    return -1;
+                }
+            }
             res = Cond->Res();
         }
     }
 
     if (res.index() == type_str) {
         while(true) {
-            Loop->Res();
+            int verify = Loop->Res();
+            if (verify != -1) {
+                if (verify == ret_break) {
+                    Block->SetLoop(false);
+                    return -1;
+                }
+            }
         }
     }
 
-    return;
+    return -1;
 }
 
-void ForAST::Res() {
-   if (VarIt) {
+int ForAST::Res() {
+    if (VarIt) {
         VarIt->Res();
-   } 
-   
-   dynamic ResCond = Cond->Res();
+    } 
 
-   if (ExprIt) {
-       if (ResCond.index() == type_num) {
+    dynamic ResCond = Cond->Res();
+
+    if (ExprIt) {
+        if (ResCond.index() == type_num) {
             while(std::get<double>(ResCond) != 0) {
-                Loop->Res();
+                int verify = Loop->Res();
+                if (verify != -1) {
+                    if (verify == ret_break) {
+                        Block->SetLoop(false);
+                        return -1;
+                    }
+                }
                 ExprIt->Res();
                 ResCond = Cond->Res();
             }
-            return;
-       }
+            return -1;
+        }
 
-       if(ResCond.index() == type_bool) {
+        if(ResCond.index() == type_bool) {
             while (std::get<bool>(ResCond) != 0) {
-                Loop->Res();
+                int verify = Loop->Res();
+                if (verify != -1) {
+                    if (verify == ret_break) {
+                        Block->SetLoop(false);
+                        return -1;
+                    }
+                }
                 ExprIt->Res();
                 ResCond = Cond->Res();
             }
-            return;
-       }
+            return -1;
+        }
 
-       if (ResCond.index() == type_str) {
+        if (ResCond.index() == type_str) {
             while (true) {
+                int verify = Loop->Res();
+                if (verify != -1) {
+                    if (verify == ret_break) {
+                        Block->SetLoop(false);
+                        return -1;
+                    }
+                }
                 Loop->Res();
                 ExprIt->Res();
             }
-            return;
-       }
+            return -1;
+        }
 
-       return;
-   }
+        return -1;
+    }
 
-   if (ResCond.index() == type_num) {
+    if (ResCond.index() == type_num) {
         while(std::get<double>(ResCond) != 0) {
-            Loop->Res();
+            int verify = Loop->Res();
+            if (verify != -1) {
+                if (verify == ret_break) {
+                    Block->SetLoop(false);
+                    return -1;
+                }
+            }
             ResCond = Cond->Res();
         }
-        return;
-   }
+        return -1;
+    }
 
-   if (ResCond.index() == type_bool) {
+    if (ResCond.index() == type_bool) {
         while(std::get<bool>(ResCond) != 0) {
-            Loop->Res();
+            int verify = Loop->Res();
+            if (verify != -1) {
+                if (verify == ret_break) {
+                    Block->SetLoop(false);
+                    return -1;
+                }
+            }
             ResCond = Cond->Res();
         }
-        return;
-   }
+        return -1;
+    }
 
-   if (ResCond.index() == type_str) {
+    if (ResCond.index() == type_str) {
         while(true) {
-            Loop->Res();
+            int verify = Loop->Res();
+            if (verify != -1) {
+                if (verify == ret_break) {
+                    Block->SetLoop(false);
+                    return -1;
+                }
+            }
         }
-        return;
-   }
+        return -1;
+    }
 
-   return;
+    return -1;
+}
+
+int BreakAST::Res() {
+    return ret_break;
 }
 
 // ============================================================================
