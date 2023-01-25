@@ -34,7 +34,7 @@
 #include <cctype> 
 #include <cstdlib> 
 #include <fstream> 
-#include <memory> 
+#include <memory>
 #include <string>
 #include <system_error>
 #include <unordered_map>
@@ -44,7 +44,7 @@
 #include <iostream> 
 
 // MACRO for variables 
-#define dynamic std::variant<double, bool, std::string, char>
+#define dynamic std::variant<double, bool, std::string, int*>
 
 std::ifstream FileInput;
 
@@ -319,6 +319,13 @@ int Tokenizer() {
 // ============                    AST CLASSES                     ============
 // ============================================================================
 
+// +++++++++++++++++++++++
+// +-----+ GLOBALS +-----+
+// +++++++++++++++++++++++
+
+// Global register to store return values 
+dynamic Register = nullptr;
+
 // +++++++++++++++++++++
 // +-----+ TYPES +-----+
 // +++++++++++++++++++++
@@ -386,13 +393,13 @@ class BlockAST : public StmtAST {
     
     // Map for variables 
     std::unordered_map<std::string, dynamic> ValMap;
-    
+
     // Map for functions 
     std::unordered_map<std::string, std::shared_ptr<FuncAST>> FuncMap;
 
     // Control Flow 
     bool Loop;
-
+    bool Func;
 
     void DeepSetVar(std::string IdName, dynamic Value) {
         if (!ValMap.count(IdName)) {
@@ -409,7 +416,12 @@ class BlockAST : public StmtAST {
     }
 
     public:
+        // Common Constructor
         BlockAST(std::shared_ptr<BlockAST> Block) : Block(std::move(Block)) {}
+        
+        // Function Contructor 
+        BlockAST(std::shared_ptr<BlockAST> Block, bool Func) 
+            : Block(std::move(Block)), Func(Func) {}
 
         // Variables methods
         void SetVar(std::string IdName, dynamic Value, int In) {
@@ -427,7 +439,7 @@ class BlockAST : public StmtAST {
         dynamic GetVar(std::string IdName) {
             if (!ValMap.count(IdName)) {
                 if (!Block) {
-                    dynamic tmp = 'n';
+                    dynamic tmp = nullptr;
                     return std::move(tmp);
                 }
                 return Block->GetVar(IdName);
@@ -460,7 +472,7 @@ class BlockAST : public StmtAST {
             }
             return true;
         }
-
+        
         void SetFunc(std::string IdName, std::shared_ptr<FuncAST> Func) {
             FuncMap[IdName] = std::move(Func);
         }
@@ -470,9 +482,19 @@ class BlockAST : public StmtAST {
                 if (!Block) {
                     return nullptr;
                 }
-                Block->GetFunc(IdName);
+                return Block->GetFunc(IdName);
             }
             return FuncMap[IdName];
+        }
+
+        bool IsFunc() {
+            if (!Func) {
+                if(!Block) {
+                    return false;
+                }
+                return Block->IsFunc();
+            }
+            return true;
         }
 
         int Res() override;
@@ -589,14 +611,17 @@ class IfAST : public StmtAST {
     std::unique_ptr<ExprAST> Cond;
     std::unique_ptr<StmtAST> IfBlock;
     std::unique_ptr<StmtAST> ElseBlock;
+    std::shared_ptr<BlockAST> Block;
 
     public:
         IfAST(std::unique_ptr<ExprAST> Cond, 
               std::unique_ptr<StmtAST> IfBlock,
-              std::unique_ptr<StmtAST> ElseBlock)
+              std::unique_ptr<StmtAST> ElseBlock,
+              std::shared_ptr<BlockAST> Block)
             : Cond(std::move(Cond)), 
               IfBlock(std::move(IfBlock)), 
-              ElseBlock(std::move(ElseBlock)) {}
+              ElseBlock(std::move(ElseBlock)),
+              Block(Block) {}
 
         int Res() override;
 };
@@ -703,11 +728,40 @@ class CallStmtAST : public StmtAST {
 
     public:
         CallStmtAST(std::string Name, std::shared_ptr<BlockAST> Block) :
-            Name(Name), Block(std::move(Block)) {}
+            Name(Name), Block(Block) {}
 
-        void SetVar(std::unique_ptr<ExprAST> E) {
-            Var.push_back(std::move(E));
+        void SetVar(std::unique_ptr<ExprAST> Expr) {
+            Var.push_back(std::move(Expr));
         }
+
+        int Res() override;
+};
+// Derived from expressions 
+class CallExprAST : public ExprAST {
+    std::string Name;
+    std::vector<std::unique_ptr<ExprAST>> Var;
+    std::shared_ptr<BlockAST> Block;
+
+    public:
+        CallExprAST(std::string Name, std::shared_ptr<BlockAST> Block) 
+            : Name(Name), Block(Block) {}
+
+        void SetVar(std::unique_ptr<ExprAST> Expr) {
+            Var.push_back(std::move(Expr));
+        }
+
+        dynamic Res() override;
+};
+
+// Class for return 
+class ReturnAST : public StmtAST {
+    std::unique_ptr<ExprAST> Expr;
+    std::shared_ptr<BlockAST> Block;
+
+    public:
+        ReturnAST(std::unique_ptr<ExprAST> Expr, 
+                  std::shared_ptr<BlockAST> Block)
+            : Expr(std::move(Expr)), Block(Block) {}
 
         int Res() override;
 };
@@ -797,12 +851,46 @@ std::unique_ptr<ExprAST> VarParser(std::string IdName,
     return std::make_unique<VarValAST>(IdName, CodeBlock);
 }
 
+// callexpr -> id '(' (expr ',') ')'
+std::unique_ptr<ExprAST> CallExprParser(std::string IdName, 
+                                        std::shared_ptr<BlockAST> CodeBlock) 
+{
+    if(!CodeBlock->SearchFunc(IdName)) {
+        return LogErrorE("function not defined");
+    }    
+
+    getNextToken(); // consume '(' 
+
+    std::unique_ptr<CallExprAST> Caller =
+        std::make_unique<CallExprAST>(IdName, CodeBlock);
+
+    while (true) {
+        if (CurToken == ')') {
+            getNextToken(); // consume ')'
+            break;
+        } else if (CurToken == ',') {
+            getNextToken(); // consume ','
+        }
+        auto E = ExprParser(CodeBlock);
+        if(!E) {
+            return nullptr;
+        }
+        Caller->SetVar(std::move(E));
+    }
+
+    return std::move(Caller);
+}
+
 // idexpr -> varexpr
 std::unique_ptr<ExprAST> IdExprParser(std::shared_ptr<BlockAST> CodeBlock) {
     getNextToken(); // consume id 
-    std::string Name = Identifier;
+    std::string IdName = Identifier;
 
-    return VarParser(Name, CodeBlock);
+    if (CurToken == '(') {
+        return CallExprParser(IdName ,CodeBlock);
+    }
+
+    return VarParser(IdName, CodeBlock);
 }
 
 // parenexpr -> '('expr')'
@@ -1067,11 +1155,12 @@ std::unique_ptr<StmtAST> IfParser(std::shared_ptr<BlockAST> CodeBlock) {
         }
 
         return std::make_unique<IfAST>(std::move(Cond), std::move(IfBlock), 
-                                       std::move(ElseBlock));
+                                       std::move(ElseBlock),
+                                       CodeBlock);
     }
 
     return std::make_unique<IfAST>(std::move(Cond), std::move(IfBlock), 
-                                    nullptr);
+                                    nullptr, CodeBlock);
 }
 
 // whilestmt -> 'while' parenexpr stmt
@@ -1161,7 +1250,7 @@ std::unique_ptr<StmtAST> FuncParser(std::shared_ptr<BlockAST> CodeBlock) {
     getNextToken(); // consume '('
 
     std::shared_ptr<BlockAST> FuncBlock =
-        std::make_shared<BlockAST>(CodeBlock);
+        std::make_shared<BlockAST>(CodeBlock, true);
     std::shared_ptr<FuncAST> Func = std::make_shared<FuncAST>(Name);
 
     while(true) {
@@ -1175,7 +1264,7 @@ std::unique_ptr<StmtAST> FuncParser(std::shared_ptr<BlockAST> CodeBlock) {
             if(!Func->SetVar(Identifier)) {
                 return LogErrorS("variable already defined in function");
             }
-            dynamic Value = 'n';
+            dynamic Value = nullptr;
             FuncBlock->SetVar(Identifier, Value, 1);
         } else {
             return LogErrorS("function not properly defined");
@@ -1194,6 +1283,19 @@ std::unique_ptr<StmtAST> FuncParser(std::shared_ptr<BlockAST> CodeBlock) {
     return std::make_unique<DummyFuncAST>();
 }
 
+// returnstmt -> return (expr)?
+std::unique_ptr<StmtAST> ReturnParser(std::shared_ptr<BlockAST> CodeBlock) {
+    getNextToken(); // consume return 
+    
+    auto Expr = ExprParser(CodeBlock);
+
+    if (!Expr) {
+        return std::make_unique<ReturnAST>(nullptr, CodeBlock);
+    }
+
+    return std::make_unique<ReturnAST>(std::move(Expr), CodeBlock);
+}
+
 // declstmt -> printstmt
 //             | varstmt
 //             | idstmt 
@@ -1203,6 +1305,7 @@ std::unique_ptr<StmtAST> FuncParser(std::shared_ptr<BlockAST> CodeBlock) {
 //             | forstmt
 //             | breakstmt
 //             | funcstmt
+//             | returnstmt
 std::unique_ptr<StmtAST> DeclarationParser(std::shared_ptr<BlockAST> CodeBlock) 
 {
     switch(CurToken) {
@@ -1224,6 +1327,8 @@ std::unique_ptr<StmtAST> DeclarationParser(std::shared_ptr<BlockAST> CodeBlock)
             return BreakParser(CodeBlock);
         case token_func:
             return FuncParser(CodeBlock);
+        case token_ret:
+            return ReturnParser(CodeBlock);
         case ';':
             return nullptr;
         default:
@@ -1267,25 +1372,11 @@ int InsideAST::Res() {
         if (!Exec) {
             return -1;
         }
-        verifier = Exec->Res();
-        if (verifier != -1) {
-            if (verifier == ret_break) {
-                if (!Block->GetLoop()) {
-                    LogErrorD("no loop to break from");
-                }
-            }
-            return verifier;
-        }
-        return -1;
+        return Exec->Res();
     }
     verifier = Exec->Res();
     if (verifier != -1) {
-        if (verifier == ret_break) {
-            if (!Block->GetLoop()) {
-                LogErrorD("no loop to break from");
-            }
-            return verifier;
-        }
+        return verifier;
     }
     return Next->Res();
 }
@@ -1902,7 +1993,7 @@ dynamic OperationAST::Res() {
 
 int VarDeclAST::Res() {
     if (!Value) {
-        dynamic tmp = 'n';
+        dynamic tmp = nullptr;
         Block->SetVar(Name, std::move(tmp), 1);
         return -1;
     }
@@ -1948,8 +2039,7 @@ int IfAST::Res() {
         if (!ElseBlock) {
             return -1;
         }
-        ElseBlock->Res();
-        return -1;
+        return ElseBlock->Res();
     }
     
     if (result.index() == type_num) {
@@ -1957,11 +2047,9 @@ int IfAST::Res() {
             if (!ElseBlock) {
                 return -1;
             }
-            ElseBlock->Res();
-            return -1;
+            return ElseBlock->Res();
         }
-        IfBlock->Res();
-        return -1;
+        return IfBlock->Res();
     }
 
     if (result.index() == type_bool) {
@@ -1969,16 +2057,13 @@ int IfAST::Res() {
             if (!ElseBlock) {
                 return -1;
             }
-            ElseBlock->Res();
-            return -1;
+            return ElseBlock->Res();
         }
-        IfBlock->Res();
-        return -1;
+        return IfBlock->Res();
     }
 
     if (result.index() == type_str) {
-        IfBlock->Res();
-        return -1;
+        return IfBlock->Res();
     }
     return -1;
 }
@@ -2128,6 +2213,9 @@ int ForAST::Res() {
 }
 
 int BreakAST::Res() {
+    if (!Block->GetLoop()) {
+        LogErrorD("no loop to break");
+    }
     return ret_break;
 }
 
@@ -2147,7 +2235,7 @@ int CallStmtAST::Res() {
     std::shared_ptr<FuncAST> Func = Block->GetFunc(Name);
 
     if (!Func) {
-        LogErrorD("function was not reconzed");
+        LogErrorD("function was not reconized");
     }
 
     if (Var.size() != Func->VarSize()) {
@@ -2163,6 +2251,43 @@ int CallStmtAST::Res() {
     Func->ReassVar(std::move(Value));
     Func->Res();
     return -1;
+}
+
+dynamic CallExprAST::Res() {
+    std::shared_ptr<FuncAST> Func = Block->GetFunc(Name);
+
+    if (!Func) {
+        LogErrorD("function was not reconized");
+    }
+
+    if (Var.size() != Func->VarSize()) {
+        LogErrorD("number of variables do not match");
+    }
+
+    std::vector<dynamic> Value;
+    for(int i = 0; i < Var.size(); i++) {
+        dynamic res = Var[i]->Res();
+        Value.push_back(res);
+    }
+
+    Func->ReassVar(std::move(Value));
+    Func->Res();
+    dynamic GetReg = Register;
+    Register = nullptr;
+    return GetReg;
+}
+
+int ReturnAST::Res() {
+    if (!Block->IsFunc()) {
+        LogErrorD("no function to return");
+    }
+    if(!Expr) {
+        Register = nullptr;
+    } else {
+        Register = Expr->Res();
+    }
+
+    return ret_value;
 }
 
 // ============================================================================
