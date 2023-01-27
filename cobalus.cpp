@@ -497,6 +497,13 @@ class BlockAST : public StmtAST {
             return true;
         }
 
+        bool IsGlobal() {
+            if (!Block) {
+                return true;
+            }
+            return false;
+        }
+
         int Res() override;
 };
 
@@ -1233,7 +1240,11 @@ std::unique_ptr<StmtAST> BreakParser(std::shared_ptr<BlockAST> CodeBlock) {
 // funcstmt -> func id '(' (id ',') ')' stmt 
 std::unique_ptr<StmtAST> FuncParser(std::shared_ptr<BlockAST> CodeBlock) {
     getNextToken(); // consume func 
-    
+   
+    if (!CodeBlock->IsGlobal()) {
+        return LogErrorS("functions cannot be defined inside blocks");
+    }
+
     if (CurToken != token_id) {
         return LogErrorS("expected identifier of function");
     }
