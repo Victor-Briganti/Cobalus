@@ -2351,8 +2351,13 @@ void Interpreter() {
 }
 
 // ============================================================================
-int main() {
-    FileInput.open("test.cb");
+int main(int argc, char** argv) {
+    if (argc < 2) {
+        std::cout << "Name of file is needed\n";
+        exit(1);
+    }
+
+    FileInput.open(argv[1]);
    
     // Definition of keywods 
     Keyword["var"] = token_var;
