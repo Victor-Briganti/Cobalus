@@ -1,0 +1,19 @@
+#if;
+#else;
+#var;
+#true;
+#false;
+#this;
+#class;
+#super;
+#null;
+#break;
+#return;
+#
+#identifier;
+
+if (10) {
+    return 20;
+} else {
+    return 30;
+}
