@@ -9,12 +9,19 @@ int LineNumber;
 
 // Insert a new error into the stack
 void PushError(std::string Identifier, std::string Error, int Level) {
-    Logging ErrorLog = Logging(Identifier, Error, Level, LineNumber);
-    Logs.push(ErrorLog);
+    // I know it's a little dirty but for now it is what it is
+    if (Level == 1){
+        Logging ErrorLog = Logging(Identifier, Error, Level, LineNumber);
+        Logs.push(ErrorLog);
+    } 
+    if (Level == 2) {
+        Logging ErrorLog = Logging(Identifier, Error, Level);
+        Logs.push(ErrorLog);
+    }
 }
 
 // Return the number of errors
-int Errors() {
+int NumErrors() {
     return Logs.size();
 }
 

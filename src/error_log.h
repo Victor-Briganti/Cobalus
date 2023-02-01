@@ -8,24 +8,25 @@ class Logging {
     int Line;
 
 public:
+    // Log for Errors. This happen during the execution
+    Logging(std::string Identifier, std::string Error, int Level) :
+        Identifier(Identifier), Error(Error), Level(Level) {}
+
+    // Log for Warning. This happen on the parser
     Logging(std::string Identifier, std::string Error, int Level, int Line) : 
         Identifier(Identifier), Error(Error), Level(Level), Line(Line) {}
     
     void PrintError() {
-        // Used for errors during the parser
-        if (Level == 1) {
-            printf("Warning: %s , %s on line %d\n", 
-                    Error.c_str(), Identifier.c_str(), Line);
-            return;
+        // 1 is a warning
+        if (Level == 1){
+            printf("Warning: %s , %s on line %d\n", Error.c_str(), 
+                                            Identifier.c_str(), Line);
         }
-        // Used for error in execution
+        // 2 is a execution error
         if (Level == 2) {
-            printf("Error: %s , %s during execution", 
-                    Error.c_str(), Identifier.c_str());
-            return;
+            printf("Error: %s %s", Error.c_str(), Identifier.c_str());
         }
-    
-    }
+    }   
 };
 
 // Saves the number of lines
@@ -33,5 +34,5 @@ extern int LineNumber;
 
 // Error Functions
 void PushError(std::string Identifier, std::string Error, int Level);
-int Errors(); // return the number of errors
+int NumErrors(); // return the number of errors
 void ShowErrors();

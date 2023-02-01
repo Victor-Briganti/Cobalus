@@ -8,23 +8,49 @@
 // Local
 #include "parser.h"
 #include "compiler.h"
+#include "lexer.h"
+#include "vcm.h"
+
+// +++++++++++++++++
+// ++++ HELPERS ++++
+// +++++++++++++++++
+
+Instruction getInstruction(int Op) {
+    switch(Op) {
+        case TOKEN_PLUS: {
+            return addD;
+        }
+        case TOKEN_MINUS: {
+            return subD;
+        }
+        case TOKEN_MUL: {
+            return mulD;
+        }
+        case TOKEN_DIV: {
+            return divD;
+        }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ////////////                    CODE GENERATION                    ////////////
 ///////////////////////////////////////////////////////////////////////////////
 
 void DoubleAST::codegen() {
-   printf("%g\n", DoubleValue);
-   return;
+    Bytecode byte;
+    byte.inst = ndoubl;
+    byte.data = DoubleValue;
+    PushStack(byte);
+    return;
 }
 
 void OperationAST::codegen() {
     if (LHS) { LHS->codegen(); }
     if (RHS) { RHS->codegen(); }
-
-    if (Op != 0){
-        printf("%d\n", Op);
-    }
+    
+    Bytecode byte;
+    byte.inst = getInstruction(Op);
+    PushStack(byte);
     return;
 }
 
