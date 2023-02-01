@@ -5,12 +5,7 @@
 #include <memory>
 
 // Local
-#include "parser.h"
-
-void DoubleAST::codegen() {
-    printf("%g\n", DoubleValue);
-    return;
-}
+#include "vcm.h"
 
 void Interpreter(std::fstream FileInput) {
     if (!FileInput.is_open()) {
@@ -22,8 +17,8 @@ void Interpreter(std::fstream FileInput) {
         std::make_unique<std::fstream>(std::move(FileInput));
     std::shared_ptr<std::fstream> FileMove = std::move(tmp);
     
-    std::unique_ptr<DeclarationAST> Result = std::move(Parser(FileMove));
-    Result->codegen();
+    InitVM(FileMove);
+
 }
 
 int main(int argc, char** argv) {

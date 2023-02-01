@@ -22,6 +22,7 @@ enum BlockState {
 /////////                           AST CLASS                         /////////
 ///////////////////////////////////////////////////////////////////////////////
 
+// Declarations are the top of the grammar, everything falls in a declaration
 class DeclarationAST {
     public:
         DeclarationAST() = default;
@@ -29,11 +30,14 @@ class DeclarationAST {
         virtual void codegen() = 0;
 };
 
+// Statements are the second class. Consider that every line will be a 
+// statement
 class StatementAST : public DeclarationAST {
     public:
         virtual void codegen() = 0;
 };
 
+// Expression will define numberic expressions and calls
 class ExpressionAST : public StatementAST {
     public:
         virtual void codegen() = 0;
@@ -45,6 +49,21 @@ class DoubleAST : public ExpressionAST {
         DoubleAST(double DoubleValue) : DoubleValue(DoubleValue) {}
         
         void codegen() override;
+};
+
+// Define every type of operation
+class OperationAST : public ExpressionAST {
+    std::unique_ptr<DeclarationAST> LHS;
+    std::unique_ptr<DeclarationAST> RHS;
+    int Op;
+
+    public:
+        OperationAST(std::unique_ptr<DeclarationAST> LHS,
+                     std::unique_ptr<DeclarationAST> RHS,
+                     int Op) 
+        : LHS(std::move(LHS)), RHS(std::move(RHS)), Op(Op) {}
+    
+    void codegen() override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

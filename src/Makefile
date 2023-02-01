@@ -1,5 +1,5 @@
 CC = clang++
-OBJS = main.o lexer.o parser.o error_log.o
+OBJS = main.o lexer.o parser.o compiler.o vcm.o error_log.o
 CFLAGS = -O3 -std=c++20
 CDEBUG = -g3 -Wall -std=c++20
 
@@ -10,6 +10,7 @@ all: release
 
 debug: $(OBJS)
 	$(CC) $(CDEBUG) -o cobalus $(OBJS)
+	make clean
 
 release: $(OBJS)
 	$(CC) $(CFLAGS) -o cobalus $(OBJS)
