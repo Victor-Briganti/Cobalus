@@ -1,5 +1,5 @@
 CC = clang++
-OBJS = main.o parser.o
+OBJS = main.o lexer.o parser.o error_log.o
 CFLAGS = -O3 -std=c++20
 CDEBUG = -g3 -Wall -std=c++20
 

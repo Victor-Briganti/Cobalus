@@ -7,6 +7,10 @@
 // Local
 #include "parser.h"
 
+void DoubleAST::codegen() {
+    printf("%g\n", DoubleValue);
+    return;
+}
 
 void Interpreter(std::fstream FileInput) {
     if (!FileInput.is_open()) {
@@ -14,27 +18,12 @@ void Interpreter(std::fstream FileInput) {
         exit(1);
     }
     
-    std::shared_ptr<std::fstream> Buffer = 
+    std::unique_ptr<std::fstream> tmp = 
         std::make_unique<std::fstream>(std::move(FileInput));
-
-    while(true) {
-        int Result = Tokenizer(Buffer);
-        if (Result == -1) {
-            printf("EOF");
-            break;
-        }
-
-        if (Result > 0) {
-            if (Result == ';') {
-                printf("%c\n", Result);
-            } else {
-                printf("%c", Result);
-            }
-        } else {
-            printf("%d", Result);
-        }
-        
-    }
+    std::shared_ptr<std::fstream> FileMove = std::move(tmp);
+    
+    std::unique_ptr<DeclarationAST> Result = std::move(Parser(FileMove));
+    Result->codegen();
 }
 
 int main(int argc, char** argv) {
