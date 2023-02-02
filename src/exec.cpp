@@ -1,9 +1,4 @@
-// Standard
-#include <string>
-#include <variant> 
-#include <vector> 
-
-// Local
+#include "error_log.h"
 #include "exec.h" 
 
 void Calculus::PushCalc(Data byte) {
@@ -17,7 +12,11 @@ void Calculus::addDouble() {
 
     Data Left = Calc.back();
     Calc.pop_back();
-    
+   
+    #ifdef DEBUG 
+        printf("Funciona\n");
+    #endif
+
     Right = std::get<double>(Left) + std::get<double>(Right);
     Calc.push_back(Right);
 }

@@ -1,11 +1,4 @@
-// Standard
-#include <fstream> 
-#include <memory>
-#include <variant>
-#include <vector>
-
-// Local
-#include "definition.h"
+#include "global.h"
 
 // Instructions
 enum Instruction {

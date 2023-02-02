@@ -1,10 +1,4 @@
-// Standard
-#include <fstream>
-#include <stdio.h>
-#include <string>
-#include <memory>
-
-// Local
+#include "global.h"
 #include "vcm.h"
 
 void Interpreter(std::fstream FileInput) {

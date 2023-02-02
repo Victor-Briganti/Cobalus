@@ -1,5 +1,3 @@
-#include <stack>
-
 #include "error_log.h"
 
 std::stack<Logging> Logs;

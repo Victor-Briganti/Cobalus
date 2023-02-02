@@ -1,13 +1,3 @@
-// Standard
-#include <cctype>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <fstream>
-
-// Local
 #include "lexer.h"
 #include "error_log.h"
 

@@ -1,20 +1,14 @@
-// Standard
-#include <string>
-#include <variant> 
-#include <vector> 
-
-// Local
+#include "global.h"
 
 // TODO: use a unique define for the variant in all files
-#define Data std::variant<double, bool, std::string, int*>
 
 // Definition of the class 
 class Calculus {
-    std::vector<Data> Calc;
+    std::vector<Value> Calc;
     
     public:
         // Operations on stack
-        void PushCalc(Data byte);
+        void PushCalc(Value byte);
 
         // Operation for Double Values
         // Arithmetic 

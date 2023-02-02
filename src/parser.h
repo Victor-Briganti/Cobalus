@@ -1,9 +1,4 @@
-// Standard
-#include <memory>
-#include <string>
-#include <variant>
-#include <unordered_map>
-#include <vector>
+#include "global.h"
 
 // Enum for definition of Blocks
 enum BlockState {

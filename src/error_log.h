@@ -1,5 +1,4 @@
-#include <string>
-#include <stdio.h>
+#include "global.h"
 
 class Logging {
     std::string Identifier;

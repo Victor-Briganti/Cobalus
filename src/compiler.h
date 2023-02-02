@@ -1,8 +1,4 @@
-// Standard
-#include <fstream>
-#include <memory>
-
-// Local
+#include "global.h"
 
 // Declaration for codegeneration
 void Compile(std::shared_ptr<std::fstream> FileComp);

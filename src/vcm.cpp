@@ -1,12 +1,3 @@
-// Standard
-#include<fstream> 
-#include <memory>
-#include <variant>
-#include <vector>
-
-#include <stdio.h>
-
-// Local
 #include "error_log.h"
 #include "exec.h"
 #include "vcm.h" 
