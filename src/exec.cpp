@@ -39,7 +39,8 @@ void Calculus::PushCalc(Value byte) {
 }
 
 // double + double
-void Calculus::addDouble() {
+// strint + string
+void Calculus::addData() {
     if (EmptyStack()) {
         return;
     }
@@ -62,9 +63,9 @@ void Calculus::addDouble() {
         printf("  %g\n", std::get<double>(Right));
     }
     if (Right.index() == 2) {
-        printf("  %s\n", std::get<std::string>(Left).c_str);
+        printf("  %s\n", std::get<std::string>(Left).c_str());
         printf("  +\n");
-        printf("  %s\n", std::get<std::string>(Right).c_str);
+        printf("  %s\n", std::get<std::string>(Right).c_str());
     }
     #endif
 
@@ -78,7 +79,7 @@ void Calculus::addDouble() {
 }
 
 // double - double
-void Calculus::subDouble() {
+void Calculus::subData() {
     if (EmptyStack()) {
         return;
     }
@@ -109,7 +110,7 @@ void Calculus::subDouble() {
 }
 
 // double * double
-void Calculus::mulDouble() {
+void Calculus::mulData() {
     if (EmptyStack()) {
         return;
     }
@@ -140,7 +141,7 @@ void Calculus::mulDouble() {
 }
 
 // double / double
-void Calculus::divDouble() {
+void Calculus::divData() {
     if (EmptyStack()) {
         return;
     }
@@ -171,7 +172,7 @@ void Calculus::divDouble() {
 }
 
 // - double
-void Calculus::invsigDouble() {
+void Calculus::invsigData() {
     if (EmptyStack()) {
         return;
     }
@@ -193,7 +194,7 @@ void Calculus::invsigDouble() {
 }
 
 // ! double
-void Calculus::negDouble() {
+void Calculus::negData() {
     if (EmptyStack()) {
         return;
     }
@@ -236,8 +237,12 @@ void Calculus::PrintTop() {
             break;
         }
         case 1: {
-             printf("%d\n", std::get<bool>(tmp));
-             break;
+            if(std::get<bool>(tmp)) {
+                printf("true\n");
+            } else {
+                printf("false\n");
+            }
+            break;
         }
         case 2: {
             printf("'%s'\n", std::get<std::string>(tmp).c_str());

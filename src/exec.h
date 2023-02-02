@@ -14,14 +14,14 @@ class Calculus {
 
         // Binary Operations on Doubles
         // Arithmetic 
-        void addDouble();
-        void subDouble();
-        void mulDouble();
-        void divDouble();
+        void addData();
+        void subData();
+        void mulData();
+        void divData();
 
         // Unary Operations on Doubles
-        void negDouble();
-        void invsigDouble();
+        void negData();
+        void invsigData();
         
         // Built-in
         void PrintTop(); // print

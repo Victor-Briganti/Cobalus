@@ -15,4 +15,4 @@
 #define Value std::variant<double, bool, std::string, int*>
 
 // Definition for DEBUG on exec.cpp
-//#define DEBUG
+#define DEBUG

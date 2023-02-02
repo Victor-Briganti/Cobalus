@@ -36,6 +36,14 @@ void Interpreter(Bytecode byte) {
             ExecStack.PushCalc(byte.data);
             break;
         }
+        case bolen: {
+            #ifdef DEBUG 
+                printf("[bolen]:\n");
+            #endif
+
+            ExecStack.PushCalc(byte.data);
+            break;
+        }
         case cstr: {
             #ifdef DEBUG 
                 printf("[cstr]:\n");
@@ -49,7 +57,7 @@ void Interpreter(Bytecode byte) {
                 printf("[addD]:\n");
             #endif
             
-            ExecStack.addDouble();
+            ExecStack.addData();
             break;
         }
         case subD: {
@@ -57,7 +65,7 @@ void Interpreter(Bytecode byte) {
                 printf("[subD]:\n");
             #endif
            
-            ExecStack.subDouble();
+            ExecStack.subData();
             break;
         }
         case divD: {
@@ -65,7 +73,7 @@ void Interpreter(Bytecode byte) {
                 printf("[divD]:\n");
             #endif
            
-            ExecStack.divDouble();
+            ExecStack.divData();
             break;
         }
         case mulD: {
@@ -73,7 +81,7 @@ void Interpreter(Bytecode byte) {
                 printf("[mulD]:\n");
             #endif
            
-            ExecStack.mulDouble();
+            ExecStack.mulData();
             break;
         }
         case negte: {
@@ -81,7 +89,7 @@ void Interpreter(Bytecode byte) {
                 printf("[negte]:\n");
             #endif
            
-            ExecStack.negDouble();
+            ExecStack.negData();
             break;
         }
         case invsig: {
@@ -89,7 +97,7 @@ void Interpreter(Bytecode byte) {
                 printf("[invsig]:\n");
             #endif
            
-            ExecStack.invsigDouble();
+            ExecStack.invsigData();
             break;
         } 
         case stio: {

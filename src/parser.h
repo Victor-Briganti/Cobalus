@@ -33,6 +33,7 @@ class ExpressionAST : public StatementAST {
         virtual void codegen() = 0;
 };
 
+// Values
 class DoubleAST : public ExpressionAST {
     double DoubleValue;
     public:
@@ -45,6 +46,14 @@ class StringAST : public ExpressionAST {
     std::string StringValue;
     public:
         StringAST(std::string StringValue) : StringValue(StringValue) {}
+
+        void codegen() override;
+};
+
+class BoolAST : public ExpressionAST {
+    bool BoolValue;
+    public:
+        BoolAST(bool BoolValue) : BoolValue(BoolValue) {}
 
         void codegen() override;
 };

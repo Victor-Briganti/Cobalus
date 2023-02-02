@@ -22,7 +22,6 @@ int getPrecedence() {
         case TOKEN_ATR: return 2;
         case TOKEN_AND: return 3;
         case TOKEN_OR: return 3;
-        case TOKEN_NOT: return 5;
         case TOKEN_EQUAL: return 5;
         case TOKEN_INEQUAL: return 5;
         case TOKEN_GREATER: return 5;
@@ -51,9 +50,20 @@ std::unique_ptr<DeclarationAST> DoubleParser() {
 
 // string
 std::unique_ptr<DeclarationAST> StringParser() {
-    getNextToken();
+    getNextToken(); // consume string
     return std::make_unique<StringAST>(StringBuffer);
 }
+
+// bool
+std::unique_ptr<DeclarationAST> BoolParser() {
+    if (CurToken == TOKEN_TRUE) {
+        getNextToken(); // consume bool
+        return std::make_unique<BoolAST>(true);
+    }
+    getNextToken(); // consume bool
+    return std::make_unique<BoolAST>(false);
+}
+
 
 // parenexpr -> '(' expression ')'
 std::unique_ptr<DeclarationAST> ParenParser() {
@@ -82,6 +92,8 @@ std::unique_ptr<DeclarationAST> UnaryParser() {
 }
 
 // primary -> number
+//         -> bool
+//         -> string
 //         -> parenexpr
 //         -> unaryexpr
 std::unique_ptr<DeclarationAST> PrimaryParser() {
@@ -94,6 +106,10 @@ std::unique_ptr<DeclarationAST> PrimaryParser() {
             return DoubleParser();
         case TOKEN_STRING:
             return StringParser();
+        case TOKEN_FALSE:
+            return BoolParser();
+        case TOKEN_TRUE:
+            return BoolParser();
         case '(':
             return ParenParser();
         case TOKEN_MINUS:

@@ -5,6 +5,7 @@ enum Instruction {
     // Types
     ndoubl, // double
     cstr, // string
+    bolen, // bool
 
     // Binary:
     // arithmetic
