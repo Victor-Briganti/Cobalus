@@ -55,14 +55,6 @@ Instruction getInstruction(int Op) {
 ////////////                    CODE GENERATION                    ////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-void BoolAST::codegen() {
-    Bytecode byte;
-    byte.inst = bolen;
-    byte.data = BoolValue;
-    PushStack(byte);
-    return;
-}
-
 void DoubleAST::codegen() {
     Bytecode byte;
     byte.inst = ndoubl;
@@ -75,6 +67,22 @@ void StringAST::codegen() {
     Bytecode byte;
     byte.inst = cstr;
     byte.data = StringValue;
+    PushStack(byte);
+    return;
+}
+
+void BoolAST::codegen() {
+    Bytecode byte;
+    byte.inst = bolen;
+    byte.data = BoolValue;
+    PushStack(byte);
+    return;
+}
+
+void NullAST::codegen() {
+    Bytecode byte;
+    byte.inst = none;
+    byte.data = nullptr;
     PushStack(byte);
     return;
 }

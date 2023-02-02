@@ -1,5 +1,12 @@
 #include "global.h"
 
+enum ValueType {
+    doub,
+    boo,
+    str,
+    nil,
+};
+
 // Definition of the class 
 class Calculus {
     std::vector<Value> Calc;

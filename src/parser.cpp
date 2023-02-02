@@ -72,6 +72,11 @@ std::unique_ptr<DeclarationAST> BoolParser() {
     return std::make_unique<BoolAST>(false);
 }
 
+// null
+std::unique_ptr<DeclarationAST> NullParser() {
+    getNextToken(); // consume null
+    return std::make_unique<NullAST>();
+}
 
 // parenexpr -> '(' expression ')'
 std::unique_ptr<DeclarationAST> ParenParser() {
@@ -93,6 +98,7 @@ std::unique_ptr<DeclarationAST> ParenParser() {
 // primary -> number
 //         -> bool
 //         -> string
+//         -> null
 //         -> parenexpr
 std::unique_ptr<DeclarationAST> PrimaryParser() {
     switch(CurToken) {
@@ -108,6 +114,8 @@ std::unique_ptr<DeclarationAST> PrimaryParser() {
             return BoolParser();
         case TOKEN_TRUE:
             return BoolParser();
+        case TOKEN_NULL:
+            return NullParser();
         case '(':
             return ParenParser();
     }

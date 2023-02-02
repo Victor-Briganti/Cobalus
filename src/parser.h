@@ -58,6 +58,13 @@ class BoolAST : public ExpressionAST {
         void codegen() override;
 };
 
+class NullAST : public ExpressionAST {
+    public:
+        NullAST() {}
+
+        void codegen() override;
+};
+
 // Define Binary operation
 class OperationAST : public ExpressionAST {
     std::unique_ptr<DeclarationAST> LHS;

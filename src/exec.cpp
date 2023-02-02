@@ -4,22 +4,25 @@
 
 // Compare values
 int TypesMatch(int R, int L) {
-    if (R == 0 && L == 2) {
+    if (R == doub && L == str) {
         return 0;
     }
-    if (R == 1 && L == 0) {
+    if (R == boo && L == doub) {
         return 0;
     }
-    if (R == 0 && L == 1) {
+    if (R == doub && L == boo) {
         return 0;
     }
-    if (R == 2 && L == 0) {
+    if (R == str && L == doub) {
         return 0;
     }
-    if (R == 1 && L == 2) {
+    if (R == boo && L == str) {
         return 0;
     }
-    if (R == 2 && L == 1) {
+    if (R == str && L == boo) {
+        return 0;
+    }
+    if (R == nil || L == nil) {
         return 0;
     }
     return 1;
@@ -37,24 +40,24 @@ int Calculus::EmptyStack() {
 void Calculus::PushCalc(Value byte) {
     #ifdef DEBUG
         switch(byte.index()) {
-            case 0:{
+            case doub:{
                 printf("  %g\n", std::get<double>(byte));
                 break;
             }
-            case 1: {
+            case boo: {
                 printf("  %d\n", std::get<bool>(byte));
                 break;
             }
-            case 2: {
+            case str: {
                 printf("  %s\n", std::get<std::string>(byte).c_str());
                 break;
             }
-            case 4:{
+            case nil:{
                 printf("  null\n");
                 break;
             }
             default: {
-                printf("ERROR\n");
+                printf("TYPE ERROR\n");
                 break;
             }
         }
@@ -74,19 +77,25 @@ void Calculus::addData() {
 
     Value Left = Calc.back();
     Calc.pop_back();
-
+    
+    // If is not a string or a a double give a error
+    if ((Right.index()%2) || (Left.index()%2)) {
+        PushError("", "operation on type not permited", 2);
+        return;
+    }
+    // It the types are not the same give a error
     if (Right.index() != Left.index()) {
         PushError("", "types don't match", 2);        
         return;
     } 
 
     #ifdef DEBUG
-    if(!Right.index()){
+    if(Right.index() == doub){
         printf("  %g\n", std::get<double>(Left));
         printf("  +\n");
         printf("  %g\n", std::get<double>(Right));
     }
-    if (Right.index() == 2) {
+    if (Right.index() == str) {
         printf("  %s\n", std::get<std::string>(Left).c_str());
         printf("  +\n");
         printf("  %s\n", std::get<std::string>(Right).c_str());
@@ -98,7 +107,7 @@ void Calculus::addData() {
         Calc.push_back(Right);
         return;
     }
-    if (Left.index() == 2) {
+    if (Left.index() == str) {
         Right = std::get<std::string>(Left) + std::get<std::string>(Right);
         Calc.push_back(Right);
         return;
@@ -121,7 +130,9 @@ void Calculus::subData() {
         PushError("", "types don't match", 2);        
         return;
     }
-    if (Right.index() == 2 || Left.index() == 2) {
+    // I already search to see if the types are equal, if they are equal but
+    // are also a string give a error
+    if (Right.index() == str) {
         PushError("", "illegal instruction in strings", 2);        
         return;
     }
@@ -152,7 +163,7 @@ void Calculus::mulData() {
         PushError("", "types don't match", 2);        
         return;
     }
-    if (Right.index() == 2 || Left.index() == 2) {
+    if (Right.index() == str) {
         PushError("", "illegal instruction in strings", 2);        
         return;
     }
@@ -183,7 +194,7 @@ void Calculus::divData() {
         PushError("", "types don't match", 2);        
         return;
     }
-    if (Right.index() == 2 || Left.index() == 2) {
+    if (Right.index() == str) {
         PushError("", "illegal instruction in strings", 2);        
         return;
     }
@@ -207,11 +218,11 @@ void Calculus::invsigData() {
     Value Expr = Calc.back();
     Calc.pop_back();
    
-    if (Expr.index() == 1) {
+    if (Expr.index() == boo) {
         PushError("", "illegal instruction on booleans", 2);        
         return;
     }
-    if (Expr.index() == 2) {
+    if (Expr.index() == str) {
         PushError("", "illegal instruction in strings", 2);        
         return;
     }
@@ -234,7 +245,7 @@ void Calculus::negData() {
     Value Expr = Calc.back();
     Calc.pop_back();
     
-    if (Expr.index() == 2) {
+    if (Expr.index() == str) {
         PushError("", "illegal instruction in strings", 2);        
         return;
     }
@@ -256,7 +267,7 @@ void Calculus::negData() {
     }
     #endif
     
-    if (!Expr.index()){
+    if (Expr.index() == doub){
         if(!std::get<double>(Expr)) {
             Value tmp = 1.0;
             Calc.push_back(tmp);
@@ -267,7 +278,7 @@ void Calculus::negData() {
             return;
         }
     }
-    if (Expr.index() == 1) {
+    if (Expr.index() == boo) {
         if(!std::get<bool>(Expr)) {
             Value tmp = true;
             Calc.push_back(tmp);
@@ -300,34 +311,34 @@ void Calculus::eqData() {
     }
 
     #ifdef DEBUG 
-     if (Right.index() == 2) {
+     if (Right.index() == str) {
         printf("  %s\n", std::get<std::string>(Left).c_str());
         printf("  ==\n");
         printf("  %s\n", std::get<std::string>(Right).c_str());
      }
-     if (Right.index() == 1 && Left.index() == 1){
+     if (Right.index() == boo && Left.index() == boo){
         printf("  %d\n", std::get<bool>(Left));
         printf("  ==\n");
         printf("  %d\n", std::get<bool>(Right));
      }
-     if (Right.index() == 0 && Left.index() == 0) {
+     if (Right.index() == doub && Left.index() == doub) {
         printf("  %g\n", std::get<double>(Left));
         printf("  ==\n");
         printf("  %g\n", std::get<double>(Right));
      }
     #endif
     
-    if (Right.index() == 0 && Left.index() == 0){
+    if (Right.index() == doub && Left.index() == doub){
         Right = (std::get<double>(Left) == std::get<double>(Right));
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 2){
+    if (Right.index() == str){
         Right = std::get<std::string>(Left) == std::get<std::string>(Right);
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 1 && Right.index() == 1){
+    if (Right.index() == boo && Right.index() == boo){
         Right = std::get<bool>(Left) == std::get<bool>(Right);
         Calc.push_back(Right);
         return;
@@ -355,44 +366,44 @@ void Calculus::ineqData() {
     }
 
     #ifdef DEBUG 
-     if (Right.index() == 2) {
+     if (Right.index() == str) {
         printf("  %s\n", std::get<std::string>(Left).c_str());
         printf("  !=\n");
         printf("  %s\n", std::get<std::string>(Right).c_str());
      }
-     if (Right.index() == 1 && Left.index() == 1){
+     if (Right.index() == boo && Left.index() == boo){
         printf("  %d\n", std::get<bool>(Left));
         printf("  !=\n");
         printf("  %d\n", std::get<bool>(Right));
      }
-     if (Right.index() == 0 && Left.index() == 0) {
+     if (Right.index() == doub && Left.index() == doub) {
         printf("  %g\n", std::get<double>(Left));
         printf("  !=\n");
         printf("  %g\n", std::get<double>(Right));
      }
     #endif
     
-    if (Right.index() == 0 && Left.index() == 0){
+    if (Right.index() == doub && Left.index() == doub){
         Right = (std::get<double>(Left) != std::get<double>(Right));
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 2){
+    if (Right.index() == str){
         Right = std::get<std::string>(Left) != std::get<std::string>(Right);
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 0 && Right.index() == 1){
+    if (Right.index() == doub && Right.index() == boo){
         Right = std::get<double>(Left) != std::get<bool>(Right);
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 1 && Right.index() == 0){
+    if (Right.index() == boo && Right.index() == doub){
         Right = std::get<bool>(Left) != std::get<double>(Right);
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 1 && Right.index() == 1){
+    if (Right.index() == boo && Right.index() == boo){
         Right = std::get<bool>(Left) != std::get<bool>(Right);
         Calc.push_back(Right);
         return;
@@ -413,31 +424,34 @@ void Calculus::grData() {
     Value Left = Calc.back();
     Calc.pop_back();
     
-    if (!TypesMatch(Left.index(), Right.index())
-        || Left.index() == 2 || Right.index() == 2) {
+    if (!TypesMatch(Left.index(), Right.index())) {
         PushError("", "types don't match", 2);        
+        return;
+    }
+    if(Right.index() == str) {
+        PushError("", "operation not permited on strings", 2);        
         return;
     }
 
     #ifdef DEBUG 
-     if (Right.index() == 1 && Left.index() == 1){
+     if (Right.index() == boo && Left.index() == boo){
         printf("  %d\n", std::get<bool>(Left));
         printf("  >\n");
         printf("  %d\n", std::get<bool>(Right));
      }
-     if (Right.index() == 0 && Left.index() == 0) {
+     if (Right.index() == doub && Left.index() == doub) {
         printf("  %g\n", std::get<double>(Left));
         printf("  >\n");
         printf("  %g\n", std::get<double>(Right));
      }
     #endif
     
-    if (Right.index() == 0 && Left.index() == 0){
+    if (Right.index() == doub && Left.index() == doub){
         Right = (std::get<double>(Left) > std::get<double>(Right));
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 1 && Right.index() == 1){
+    if (Right.index() == boo && Right.index() == boo){
         Right = std::get<bool>(Left) > std::get<bool>(Right);
         Calc.push_back(Right);
         return;
@@ -458,31 +472,34 @@ void Calculus::lsData() {
     Value Left = Calc.back();
     Calc.pop_back();
     
-    if (!TypesMatch(Left.index(), Right.index())
-        || Left.index() == 2 || Right.index() == 2) {
+    if (!TypesMatch(Left.index(), Right.index())) {
         PushError("", "types don't match", 2);        
+        return;
+    }
+    if(Right.index() == str) {
+        PushError("", "operation not permited on strings", 2);        
         return;
     }
 
     #ifdef DEBUG 
-     if (Right.index() == 1 && Left.index() == 1){
+     if (Right.index() == boo && Left.index() == boo){
         printf("  %d\n", std::get<bool>(Left));
         printf("  <\n");
         printf("  %d\n", std::get<bool>(Right));
      }
-     if (Right.index() == 0 && Left.index() == 0) {
+     if (Right.index() == doub && Left.index() == doub) {
         printf("  %g\n", std::get<double>(Left));
         printf("  <\n");
         printf("  %g\n", std::get<double>(Right));
      }
     #endif
     
-    if (Right.index() == 0 && Left.index() == 0){
+    if (Right.index() == doub && Left.index() == doub){
         Right = (std::get<double>(Left) < std::get<double>(Right));
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 1 && Right.index() == 1){
+    if (Right.index() == boo && Right.index() == boo){
         Right = std::get<bool>(Left) < std::get<bool>(Right);
         Calc.push_back(Right);
         return;
@@ -503,37 +520,40 @@ void Calculus::greqData() {
     Value Left = Calc.back();
     Calc.pop_back();
     
-    if (!TypesMatch(Left.index(), Right.index())
-        || Left.index() == 2 || Right.index() == 2) 
+    if (!TypesMatch(Left.index(), Right.index()))
     {
         PushError("", "types don't match", 2);        
         return;
     }
+    if(Right.index() == str) {
+        PushError("", "operation not permited on strings", 2);        
+        return;
+    }
 
     #ifdef DEBUG 
-     if (Right.index() == 1 && Left.index() == 1){
+     if (Right.index() == boo && Left.index() == boo){
         printf("  %d\n", std::get<bool>(Left));
         printf("  >=\n");
         printf("  %d\n", std::get<bool>(Right));
      }
-     if (Right.index() == 0 && Left.index() == 0) {
+     if (Right.index() == doub && Left.index() == doub) {
         printf("  %g\n", std::get<double>(Left));
         printf("  >=\n");
         printf("  %g\n", std::get<double>(Right));
      }
     #endif
     
-    if (Right.index() == 0 && Left.index() == 0){
+    if (Right.index() == doub && Left.index() == doub){
         Right = (std::get<double>(Left) >= std::get<double>(Right));
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 2){
+    if (Right.index() == str){
         Right = std::get<std::string>(Left) >= std::get<std::string>(Right);
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 1 && Right.index() == 1){
+    if (Right.index() == boo && Right.index() == boo){
         Right = std::get<bool>(Left) >= std::get<bool>(Right);
         Calc.push_back(Right);
         return;
@@ -554,52 +574,40 @@ void Calculus::lseqData() {
     Value Left = Calc.back();
     Calc.pop_back();
     
-    if (!TypesMatch(Left.index(), Right.index()) 
-            || Left.index() == 2 || Right.index() == 2) 
+    if (!TypesMatch(Left.index(), Right.index())) 
     {
         PushError("", "types don't match", 2);        
         return;
     }
+    if(Right.index() == str) {
+        PushError("", "operation not permited on strings", 2);        
+        return;
+    }
 
     #ifdef DEBUG 
-     if (Right.index() == 2) {
+     if (Right.index() == str) {
         printf("  %s\n", std::get<std::string>(Left).c_str());
         printf("  <=\n");
         printf("  %s\n", std::get<std::string>(Right).c_str());
      }
-     if (Right.index() == 1 && Left.index() == 1){
+     if (Right.index() == boo){
         printf("  %d\n", std::get<bool>(Left));
         printf("  <=\n");
         printf("  %d\n", std::get<bool>(Right));
      }
-     if (Right.index() == 0 && Left.index() == 0) {
+     if (Right.index() == doub) {
         printf("  %g\n", std::get<double>(Left));
         printf("  <=\n");
         printf("  %g\n", std::get<double>(Right));
      }
     #endif
     
-    if (Right.index() == 0 && Left.index() == 0){
+    if (Right.index() == doub){
         Right = (std::get<double>(Left) <= std::get<double>(Right));
         Calc.push_back(Right);
         return;
     }
-    if (Right.index() == 2){
-        Right = std::get<std::string>(Left) <= std::get<std::string>(Right);
-        Calc.push_back(Right);
-        return;
-    }
-    if (Right.index() == 0 && Right.index() == 1){
-        Right = std::get<double>(Left) <= std::get<bool>(Right);
-        Calc.push_back(Right);
-        return;
-    }
-    if (Right.index() == 1 && Right.index() == 0){
-        Right = std::get<bool>(Left) <= std::get<double>(Right);
-        Calc.push_back(Right);
-        return;
-    }
-    if (Right.index() == 1 && Right.index() == 1){
+    if (Right.index() == boo){
         Right = std::get<bool>(Left) <= std::get<bool>(Right);
         Calc.push_back(Right);
         return;

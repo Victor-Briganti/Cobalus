@@ -17,4 +17,5 @@
 #print(9 > 3);
 #print(9 > 12);
 #print("hello" != "hi");
-print(true > 10);
+#print(true > 10);
+print(null + 1);
