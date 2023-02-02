@@ -1,0 +1,6 @@
+print("okay");
+#print("hello " + "there");
+#print("hello " - "there");
+#print("hello " / "there");
+#print("hello " * "there");
+

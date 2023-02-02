@@ -2,7 +2,9 @@
 
 // Instructions
 enum Instruction {
-    ndoubl,
+    // Types
+    ndoubl, // double
+    cstr, // string
 
     // Binary:
     // arithmetic

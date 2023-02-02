@@ -36,6 +36,14 @@ void Interpreter(Bytecode byte) {
             ExecStack.PushCalc(byte.data);
             break;
         }
+        case cstr: {
+            #ifdef DEBUG 
+                printf("[cstr]:\n");
+            #endif
+
+            ExecStack.PushCalc(byte.data);
+            break;
+        }
         case addD: {
             #ifdef DEBUG 
                 printf("[addD]:\n");

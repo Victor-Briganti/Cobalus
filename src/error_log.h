@@ -23,7 +23,7 @@ public:
         }
         // 2 is a execution error
         if (Level == 2) {
-            printf("Error: %s %s", Error.c_str(), Identifier.c_str());
+            printf("Error: %s %s\n", Error.c_str(), Identifier.c_str());
         }
     }   
 };

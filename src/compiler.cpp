@@ -44,6 +44,14 @@ void DoubleAST::codegen() {
     return;
 }
 
+void StringAST::codegen() {
+    Bytecode byte;
+    byte.inst = cstr;
+    byte.data = StringValue;
+    PushStack(byte);
+    return;
+}
+
 void OperationAST::codegen() {
     LHS->codegen();
     RHS->codegen();

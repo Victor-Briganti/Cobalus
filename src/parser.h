@@ -41,6 +41,14 @@ class DoubleAST : public ExpressionAST {
         void codegen() override;
 };
 
+class StringAST : public ExpressionAST {
+    std::string StringValue;
+    public:
+        StringAST(std::string StringValue) : StringValue(StringValue) {}
+
+        void codegen() override;
+};
+
 // Define Binary operation
 class OperationAST : public ExpressionAST {
     std::unique_ptr<DeclarationAST> LHS;

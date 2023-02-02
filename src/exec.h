@@ -1,12 +1,14 @@
 #include "global.h"
 
-// TODO: use a unique define for the variant in all files
-
 // Definition of the class 
 class Calculus {
     std::vector<Value> Calc;
-    
+
+
     public:
+        // Verify the Stack
+        int EmptyStack();    
+
         // Operations on stack
         void PushCalc(Value byte);
 

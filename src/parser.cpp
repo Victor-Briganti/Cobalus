@@ -49,6 +49,12 @@ std::unique_ptr<DeclarationAST> DoubleParser() {
     return std::make_unique<DoubleAST>(DoubleBuffer);
 }
 
+// string
+std::unique_ptr<DeclarationAST> StringParser() {
+    getNextToken();
+    return std::make_unique<StringAST>(StringBuffer);
+}
+
 // parenexpr -> '(' expression ')'
 std::unique_ptr<DeclarationAST> ParenParser() {
     getNextToken(); // consume '('
@@ -86,6 +92,8 @@ std::unique_ptr<DeclarationAST> PrimaryParser() {
         }
         case TOKEN_DOUBLE:
             return DoubleParser();
+        case TOKEN_STRING:
+            return StringParser();
         case '(':
             return ParenParser();
         case TOKEN_MINUS:
@@ -105,7 +113,7 @@ std::unique_ptr<DeclarationAST> OperationParser(int PrecLHS,
 
         // If the precedence is higher on the operation passed(LHS) return it.
         if (PrecRHS < PrecLHS) {
-            return std::move(LHS);
+            return LHS;
         }
 
         // Precedence is higher on the right side. Save current operator
@@ -199,5 +207,5 @@ std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<std::fstream> FileInput)
     if (!Program) {
         return nullptr;
     }
-    return std::move(Program);
+    return Program;
 }

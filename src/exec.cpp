@@ -2,6 +2,14 @@
 #include "exec.h" 
 #include "vcm.h"
 
+int Calculus::EmptyStack() {
+    if (Calc.empty()) {
+        PushError("", "illegal instruction stack of execution is empty", 2);        
+        return 1;
+    }
+    return 0;
+}
+
 void Calculus::PushCalc(Value byte) {
     #ifdef DEBUG
         switch(byte.index()) {
@@ -32,29 +40,63 @@ void Calculus::PushCalc(Value byte) {
 
 // double + double
 void Calculus::addDouble() {
+    if (EmptyStack()) {
+        return;
+    }
+
     Value Right = Calc.back();
     Calc.pop_back();
 
     Value Left = Calc.back();
     Calc.pop_back();
-   
-    #ifdef DEBUG 
+
+    if (Right.index() != Left.index()) {
+        PushError("", "types don't match", 2);        
+        return;
+    } 
+
+    #ifdef DEBUG
+    if(!Right.index()){
         printf("  %g\n", std::get<double>(Left));
         printf("  +\n");
         printf("  %g\n", std::get<double>(Right));
+    }
+    if (Right.index() == 2) {
+        printf("  %s\n", std::get<std::string>(Left).c_str);
+        printf("  +\n");
+        printf("  %s\n", std::get<std::string>(Right).c_str);
+    }
     #endif
 
-    Right = std::get<double>(Left) + std::get<double>(Right);
+    if (!Left.index()) {
+        Right = std::get<double>(Left) + std::get<double>(Right);
+    }
+    if (!Left.index()) {
+        Right = std::get<std::string>(Left) + std::get<std::string>(Right);
+    }
     Calc.push_back(Right);
 }
 
 // double - double
 void Calculus::subDouble() {
+    if (EmptyStack()) {
+        return;
+    }
+
     Value Right = Calc.back();
     Calc.pop_back();
 
     Value Left = Calc.back();
     Calc.pop_back();
+
+    if (Right.index() != Left.index()) {
+        PushError("", "types don't match", 2);        
+        return;
+    }
+    if (Right.index() == 2 || Left.index() == 2) {
+        PushError("", "illegal instruction in strings", 2);        
+        return;
+    }
 
     #ifdef DEBUG 
         printf("  %g\n", std::get<double>(Left));
@@ -68,11 +110,24 @@ void Calculus::subDouble() {
 
 // double * double
 void Calculus::mulDouble() {
+    if (EmptyStack()) {
+        return;
+    }
+
     Value Right = Calc.back();
     Calc.pop_back();
 
     Value Left = Calc.back();
     Calc.pop_back();
+    
+    if (Right.index() != Left.index()) {
+        PushError("", "types don't match", 2);        
+        return;
+    }
+    if (Right.index() == 2 || Left.index() == 2) {
+        PushError("", "illegal instruction in strings", 2);        
+        return;
+    }
 
     #ifdef DEBUG 
         printf("  %g\n", std::get<double>(Left));
@@ -86,11 +141,24 @@ void Calculus::mulDouble() {
 
 // double / double
 void Calculus::divDouble() {
+    if (EmptyStack()) {
+        return;
+    }
+
     Value Right = Calc.back();
     Calc.pop_back();
 
     Value Left = Calc.back();
     Calc.pop_back();
+    
+    if (Right.index() != Left.index()) {
+        PushError("", "types don't match", 2);        
+        return;
+    }
+    if (Right.index() == 2 || Left.index() == 2) {
+        PushError("", "illegal instruction in strings", 2);        
+        return;
+    }
 
     #ifdef DEBUG 
         printf("  %g\n", std::get<double>(Left));
@@ -104,8 +172,17 @@ void Calculus::divDouble() {
 
 // - double
 void Calculus::invsigDouble() {
+    if (EmptyStack()) {
+        return;
+    }
+
     Value Expr = Calc.back();
     Calc.pop_back();
+    
+    if (Expr.index() == 2) {
+        PushError("", "illegal instruction in strings", 2);        
+        return;
+    }
     
     #ifdef DEBUG 
         printf("  -\n");
@@ -117,9 +194,18 @@ void Calculus::invsigDouble() {
 
 // ! double
 void Calculus::negDouble() {
+    if (EmptyStack()) {
+        return;
+    }
+
     Value Expr = Calc.back();
     Calc.pop_back();
     
+    if (Expr.index() == 2) {
+        PushError("", "illegal instruction in strings", 2);        
+        return;
+    }
+
     #ifdef DEBUG 
         printf("  !\n");
         printf("  %g\n", std::get<double>(Expr));
@@ -137,8 +223,30 @@ void Calculus::negDouble() {
 }
 
 void Calculus::PrintTop() {
+    if (EmptyStack()) {
+        return;
+    }
+
     Value tmp = Calc.back();
     Calc.pop_back();
-    printf("%g\n", std::get<double>(tmp));
+    
+    switch(tmp.index()) {
+        case 0: {
+            printf("%g\n", std::get<double>(tmp));
+            break;
+        }
+        case 1: {
+             printf("%d\n", std::get<bool>(tmp));
+             break;
+        }
+        case 2: {
+            printf("'%s'\n", std::get<std::string>(tmp).c_str());
+            break;
+        }
+        default: {
+            printf("null\n");
+            break;
+        }
+    }
 }
 
