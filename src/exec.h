@@ -11,7 +11,6 @@ enum ValueType {
 class Calculus {
     std::vector<Value> Calc;
 
-
     public:
         // Verify the Stack
         int EmptyStack();    
@@ -37,6 +36,9 @@ class Calculus {
         void negData();
         void invsigData();
         
+        // Variable
+        void stvarData(int offset);
+
         // Built-in
         void PrintTop(); // print
 };

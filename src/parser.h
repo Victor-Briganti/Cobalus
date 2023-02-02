@@ -1,10 +1,12 @@
 #include "global.h"
+#include "block.h"
 
 // Enum for definition of Blocks
+// By definition the blocks of functions can only be implemented inside the 
+// global block or the class block
 enum BlockState {
     GLOBAL,
     FUNC,
-    LOOP,
     COMMON,
 };
 
@@ -99,6 +101,34 @@ class PrintAST : public StatementAST {
     public:
         PrintAST(std::unique_ptr<DeclarationAST> Expr) 
             : Expr(std::move(Expr)) {}
+        
+        void codegen() override;
+};
+
+// Variable declaration
+class VarDeclAST : public StatementAST {
+    std::unique_ptr<DeclarationAST> Expr;
+    std::shared_ptr<BlockAST> ParentBlock;
+    std::string Variable;
+    int Decl;
+
+    public:
+        VarDeclAST(std::string Variable, int Decl, 
+                   std::unique_ptr<DeclarationAST> Expr, 
+                   std::shared_ptr<BlockAST> ParentBlock) 
+            : Expr(std::move(Expr)), ParentBlock(ParentBlock) {}
+    
+        void codegen() override;
+};
+
+// Variable value
+class VarValAST : public StatementAST {
+    std::shared_ptr<BlockAST> ParentBlock;
+    std::string Variable;
+
+    public:
+        VarValAST(std::string Variable, std::shared_ptr<BlockAST> ParentBlock)
+            : ParentBlock(ParentBlock), Variable(Variable) {}
         
         void codegen() override;
 };

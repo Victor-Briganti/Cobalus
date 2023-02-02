@@ -48,7 +48,8 @@ int isUnary() {
 ///////////////////////////////////////////////////////////////////////////////
 
 // Forward definition
-std::unique_ptr<DeclarationAST> ExpressionParser();
+std::unique_ptr<DeclarationAST> ExpressionParser \
+    (std::shared_ptr<BlockAST> CurBlock);
 
 // number -> double
 std::unique_ptr<DeclarationAST> DoubleParser() {
@@ -79,10 +80,11 @@ std::unique_ptr<DeclarationAST> NullParser() {
 }
 
 // parenexpr -> '(' expression ')'
-std::unique_ptr<DeclarationAST> ParenParser() {
+std::unique_ptr<DeclarationAST> ParenParser(std::shared_ptr<BlockAST> CurBlock) 
+{
     getNextToken(); // consume '('
     
-    auto Expr = ExpressionParser();
+    auto Expr = ExpressionParser(CurBlock);
     if (!Expr) {
         return nullptr;
     }
@@ -95,12 +97,24 @@ std::unique_ptr<DeclarationAST> ParenParser() {
     return Expr;
 }
 
+// variable -> any
+std::unique_ptr<DeclarationAST> \
+    VariableParser(std::shared_ptr<BlockAST> CurBlock) 
+{
+    getNextToken(); // consume id
+    std::string VarName = Identifier;
+
+    return std::make_unique<VarValAST>(Identifier, CurBlock);
+}
+
 // primary -> number
-//         -> bool
-//         -> string
-//         -> null
-//         -> parenexpr
-std::unique_ptr<DeclarationAST> PrimaryParser() {
+//         |  bool
+//         |  string
+//         |  null
+//         |  parenexpr
+//         |  variable
+std::unique_ptr<DeclarationAST> PrimaryParser(std::shared_ptr<BlockAST> CurBlock) 
+{
     switch(CurToken) {
         default:{
             PushError(Identifier, "expression not identified", 1); 
@@ -117,32 +131,37 @@ std::unique_ptr<DeclarationAST> PrimaryParser() {
         case TOKEN_NULL:
             return NullParser();
         case '(':
-            return ParenParser();
+            return ParenParser(CurBlock);
+        case TOKEN_ID:
+            return VariableParser(CurBlock);
     }
 }
 
 // unaryexpr -> '!'|'-' unary
-//           -> primary
-std::unique_ptr<DeclarationAST> UnaryParser() {
+//           |  primary
+std::unique_ptr<DeclarationAST> UnaryParser(std::shared_ptr<BlockAST> CurBlock) 
+{
     // If the current token is not a operator, it must be a primary
     if (!isUnary() || CurToken == '(' || CurToken == ',') {
-        return PrimaryParser();
+        return PrimaryParser(CurBlock);
     }
     
     // If is a unary operator read it
     int Op = CurToken;
     getNextToken(); // consume '!'|'-'
     
-    auto Operand = UnaryParser();
+    auto Operand = UnaryParser(CurBlock);
     if (!Operand) {
         return nullptr;
     }
     return std::make_unique<UnaryAST>(std::move(Operand), Op);
 }
 
-// operation -> number | number '+' operation
+// operation -> number 
+//           |  number '+' operation
 std::unique_ptr<DeclarationAST> OperationParser(int PrecLHS, 
-                                        std::unique_ptr<DeclarationAST> LHS) 
+                                        std::unique_ptr<DeclarationAST> LHS,
+                                        std::shared_ptr<BlockAST> CurBlock) 
 {
     // Mounts the operation precedence in reverse polish
     while (true) {
@@ -158,7 +177,7 @@ std::unique_ptr<DeclarationAST> OperationParser(int PrecLHS,
         getNextToken(); // consume operator
 
         // Parse the RHS of the expression 
-        auto RHS = UnaryParser();
+        auto RHS = UnaryParser(CurBlock);
         if (!RHS) {
             return nullptr;
         }
@@ -170,7 +189,7 @@ std::unique_ptr<DeclarationAST> OperationParser(int PrecLHS,
         // one parses the RHS
         if (PrecRHS < NextPrec) {
             // Removing PrecRHS+1 if error is that
-            RHS = OperationParser(PrecRHS+1, std::move(RHS));
+            RHS = OperationParser(PrecRHS+1, std::move(RHS), CurBlock);
             if (!RHS) {
                 return nullptr;
             }
@@ -183,17 +202,20 @@ std::unique_ptr<DeclarationAST> OperationParser(int PrecLHS,
 }
 
 // expression -> operation
-std::unique_ptr<DeclarationAST> ExpressionParser() {
-    auto LHS = UnaryParser();
+std::unique_ptr<DeclarationAST> \
+    ExpressionParser(std::shared_ptr<BlockAST> CurBlock) 
+{
+    auto LHS = UnaryParser(CurBlock);
     if (!LHS) {
         return nullptr;
     }
 
-    return OperationParser(0, std::move(LHS));
+    return OperationParser(0, std::move(LHS), CurBlock);
 }
 
 // printstmt -> print parenexpr
-std::unique_ptr<DeclarationAST> PrintParser() {
+std::unique_ptr<DeclarationAST> PrintParser(std::shared_ptr<BlockAST> CurBlock) 
+{
     getNextToken(); // consume print
     
     if (CurToken != '(') {
@@ -201,7 +223,7 @@ std::unique_ptr<DeclarationAST> PrintParser() {
        return nullptr;
     }
     
-    auto Expr = ParenParser();
+    auto Expr = ParenParser(CurBlock);
     if (!Expr) {
         return nullptr;
     }
@@ -209,15 +231,47 @@ std::unique_ptr<DeclarationAST> PrintParser() {
     return std::make_unique<PrintAST>(std::move(Expr));
 }
 
-// statement -> expression
-//              printstmt
-std::unique_ptr<DeclarationAST> StatementParser() {
+// vardecl -> var id '(' = expression ')'?
+std::unique_ptr<DeclarationAST> \
+    VarAssignParser(std::shared_ptr<BlockAST> CurBlock) 
+{
+    int Decl = 0;
+    if (CurToken == TOKEN_VAR) {
+        Decl = 1; // its a first declaration
+        getNextToken(); // consume var
+    }
+
+    std::string VarName = Identifier;
+    getNextToken(); // consume identifier
+
+    if (CurToken != TOKEN_ATR) {
+        return std::make_unique<VarDeclAST>(VarName, Decl, nullptr, 
+                                            CurBlock);
+    }
+    
+    getNextToken(); // consume '='
+    auto Expr = ExpressionParser(CurBlock);
+    if (!Expr) {
+       PushError(Identifier, "expression was not reconized", 1); 
+       return nullptr;
+    }
+    return std::make_unique<VarDeclAST>(VarName, Decl, std::move(Expr), 
+                                        CurBlock);
+}
+
+// statement -> printstmt
+//           |  vardecl
+std::unique_ptr<DeclarationAST> \
+    StatementParser(std::shared_ptr<BlockAST> CurBlock) 
+{
     switch(CurToken) {
         case TOKEN_PRINT:
-            return PrintParser();
-        case TOKEN_DOUBLE:
-            return ExpressionParser();
-        default:{
+            return PrintParser(CurBlock);
+        case TOKEN_VAR:
+            return VarAssignParser(CurBlock);
+        case TOKEN_ID:
+            return VarAssignParser(CurBlock); // Change this when function added
+        default: {
             PushError(Identifier, "statement not identified", 1); 
             return nullptr;
         }
@@ -225,8 +279,26 @@ std::unique_ptr<DeclarationAST> StatementParser() {
 }
 
 // declaration -> statement
-std::unique_ptr<DeclarationAST> DeclarationParser() { 
-    return StatementParser();
+//             |  expression
+std::unique_ptr<DeclarationAST> \
+    DeclarationParser(std::shared_ptr<BlockAST> CurBlock) 
+{
+    switch(CurToken) {
+        case TOKEN_DOUBLE:
+            return ExpressionParser(CurBlock);
+        case TOKEN_NULL:
+            return ExpressionParser(CurBlock);
+        case TOKEN_STRING:
+            return ExpressionParser(CurBlock);
+        case TOKEN_TRUE:
+            return ExpressionParser(CurBlock);
+        case TOKEN_FALSE:
+            return ExpressionParser(CurBlock);
+        case '(':
+            return ExpressionParser(CurBlock);
+        default:
+            return StatementParser(CurBlock);
+    }
 }
 
 // program -> declaration
@@ -236,11 +308,14 @@ std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<std::fstream> FileInput)
     FileParser = FileInput;    
     getNextToken(); // Get the first token
     
+    std::shared_ptr<BlockAST> Global = 
+        std::make_shared<BlockAST>(nullptr, GLOBAL);
+
     if (CurToken == TOKEN_EOF) {
         return nullptr;
     }
     
-    auto Program = DeclarationParser();
+    auto Program = DeclarationParser(Global);
     if (!Program) {
         return nullptr;
     }

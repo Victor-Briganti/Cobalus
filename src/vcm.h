@@ -7,6 +7,10 @@ enum Instruction {
     cstr, // string
     bolen, // bool
     none, // null
+    
+    // Variables
+    varst, // store
+    varrt, // return
 
     // Binary:
     // arithmetic
@@ -38,6 +42,8 @@ struct Bytecode {
 
 // Stack Operations
 void PushStack(Bytecode);
+int SizeStack();
+void InsertVal(Value, int);
 
 // VM Operation
 void InitVM(std::shared_ptr<std::fstream> FileInput);

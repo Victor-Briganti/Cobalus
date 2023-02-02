@@ -28,7 +28,6 @@ int TypesMatch(int R, int L) {
     return 1;
 }
 
-
 int Calculus::EmptyStack() {
     if (Calc.empty()) {
         PushError("", "illegal instruction stack of execution is empty", 2);        
@@ -624,11 +623,11 @@ void Calculus::PrintTop() {
     Calc.pop_back();
     
     switch(tmp.index()) {
-        case 0: {
+        case doub: {
             printf("%g\n", std::get<double>(tmp));
             break;
         }
-        case 1: {
+        case boo: {
             if(std::get<bool>(tmp)) {
                 printf("true\n");
             } else {
@@ -636,7 +635,7 @@ void Calculus::PrintTop() {
             }
             break;
         }
-        case 2: {
+        case str: {
             printf("'%s'\n", std::get<std::string>(tmp).c_str());
             break;
         }
@@ -647,3 +646,46 @@ void Calculus::PrintTop() {
     }
 }
 
+void Calculus::stvarData(int offset) {
+    if (EmptyStack()) {
+        return;
+    }
+    
+    Value var = Calc.back();
+    Calc.pop_back();
+
+    #ifdef DEBUG
+    printf("[stackval]: ");
+    switch(var.index()) {
+        case doub: {
+            printf("%g\n", std::get<double>(var));
+            break;
+        }
+        case boo: {
+            if(std::get<bool>(var)) {
+                printf("true\n");
+            } else {
+                printf("false\n");
+            }
+            break;
+        }
+        case str: {
+            printf("'%s'\n", std::get<std::string>(var).c_str());
+            break;
+        }
+        case nil: {
+            printf("null\n");
+            break;
+        }
+        default: {
+            printf("error\n");
+            break;
+        }
+    }
+    printf("[offset]: %d\n", offset);
+    #endif
+
+    InsertVal(var, offset);
+
+    return;
+}

@@ -19,6 +19,16 @@ void PushStack(Bytecode byte) {
     }
 }
 
+int SizeStack() {
+    return CobaluStack.size();
+}
+
+void InsertVal (Value data, int offset) {
+    Bytecode byte = CobaluStack[offset];
+    byte.data = data;
+    return;
+}
+
 // Stack that stores variables and constants for execution
 Calculus ExecStack;
 
@@ -26,7 +36,7 @@ Calculus ExecStack;
 ////////////                    VM EXECUTION                       ////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-void Interpreter(Bytecode byte) {
+void Interpreter(Bytecode byte, int offset) {
     switch (byte.inst) {
         case ndoubl: {
             #ifdef DEBUG 
@@ -165,6 +175,14 @@ void Interpreter(Bytecode byte) {
             ExecStack.PrintTop();
             break;
         }
+        case varst: {
+            #ifdef DEBUG
+                printf("[varst]:\n");
+            #endif
+         
+           ExecStack.stvarData(offset);
+           break;
+        }
         default: {
             std::string Error = "Instruction was not reconized";
             std::string Id = ".";
@@ -177,9 +195,11 @@ void Interpreter(Bytecode byte) {
 void CodeExec() {
     // Execute instruction line by line
     for (int i = 0; i < CobaluStack.size(); i++) {
-        Interpreter(CobaluStack[i]);
+        Interpreter(CobaluStack[i], i);
     }
     
+    printf("%d\n", CobaluStack.size());
+
     // If there is any error show all of them
     if (NumErrors()) {
        ShowErrors();

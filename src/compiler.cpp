@@ -1,11 +1,5 @@
-// Standard
-#include <fstream>
-#include <memory>
-#include <variant>
-
-#include <stdio.h> // remove
-
-// Local
+#include "global.h"
+#include "error_log.h"
 #include "parser.h"
 #include "compiler.h"
 #include "lexer.h"
@@ -47,7 +41,11 @@ Instruction getInstruction(int Op) {
         case TOKEN_LESSEQ: {
             return lseqD;
         }
-        
+        default: {
+            PushError("", "illegal instruction", 1); 
+            ShowErrors();
+            exit(0);
+        }
     }
 }
 
@@ -116,6 +114,33 @@ void PrintAST::codegen() {
 
     Bytecode byte;
     byte.inst = stio;
+    PushStack(byte);
+    return;
+}
+
+void VarValAST::codegen() {
+    return;
+}
+
+void VarDeclAST::codegen() {
+    Bytecode byte;
+    byte.inst = varst;
+   
+    if (!Expr) {
+        Bytecode byte;
+        byte.inst = none;
+        byte.data = nullptr;
+        PushStack(byte);
+    } else {
+        Expr->codegen();
+    }
+
+    if (Decl == 1) {
+        byte.offset = ParentBlock->setOffset(Variable);
+        PushStack(byte);
+        return;
+    }
+    byte.offset = ParentBlock->getOffset(Variable);
     PushStack(byte);
     return;
 }
