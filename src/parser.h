@@ -1,16 +1,11 @@
+// Standard
 #include <memory>
 #include <string>
 #include <variant>
 #include <unordered_map>
 #include <vector>
 
-///////////////////////////////////////////////////////////////////////////////
-/////////                           DEFINITIONS                       /////////
-///////////////////////////////////////////////////////////////////////////////
-
-// The last int* represents the null
-#define Value std::variant<double, bool,std::string, int*>
-
+// Enum for definition of Blocks
 enum BlockState {
     GLOBAL,
     FUNC,

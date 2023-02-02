@@ -17,7 +17,7 @@ void Calculus::addDouble() {
 
     Data Left = Calc.back();
     Calc.pop_back();
-
+    
     Right = std::get<double>(Left) + std::get<double>(Right);
     Calc.push_back(Right);
 }

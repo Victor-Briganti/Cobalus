@@ -4,7 +4,8 @@
 #include <variant>
 #include <vector>
 
-# define Value std::variant<double, bool, std::string, int*>
+// Local
+#include "definition.h"
 
 // Instructions
 enum Instruction {
