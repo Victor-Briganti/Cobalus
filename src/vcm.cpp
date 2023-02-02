@@ -8,6 +8,7 @@
 
 // Local
 #include "error_log.h"
+#include "exec.h"
 #include "vcm.h" 
 #include "compiler.h"
 
@@ -28,72 +29,6 @@ void PushStack(Bytecode byte) {
     ps++;
 }
 
-// TODO: pass this class to another file before it gets to f@#$ big.
-
-// Class for wrapping Calculation Stack 
-class Calculus {
-    std::vector<Value> Calc; // Stack for Calculus
-    
-    public:
-        void PushStack(Value numb) {
-            Calc.push_back(numb);
-        }
-        
-        // double + double
-        void addDouble() {
-            Value Right = Calc.back();
-            Calc.pop_back();
-            
-            Value Left = Calc.back();
-            Calc.pop_back();
-            
-            Right = std::get<double>(Left) + std::get<double>(Right);
-            Calc.push_back(Right);
-        }
-        
-        // double - double
-        void subDouble() {
-            Value Right = Calc.back();
-            Calc.pop_back();
-            
-            Value Left = Calc.back();
-            Calc.pop_back();
-            
-            Right = std::get<double>(Left) - std::get<double>(Right);
-            Calc.push_back(Right);
-        }
-        
-        // double * double
-        void mulDouble() {
-            Value Right = Calc.back();
-            Calc.pop_back();
-            
-            Value Left = Calc.back();
-            Calc.pop_back();
-            
-            Right = std::get<double>(Left) * std::get<double>(Right);
-            Calc.push_back(Right);
-        }
-        
-        // double / double
-        void divDouble() {
-            Value Right = Calc.back();
-            Calc.pop_back();
-            
-            Value Left = Calc.back();
-            Calc.pop_back();
-            
-            Right = std::get<double>(Left) / std::get<double>(Right);
-            Calc.push_back(Right);
-        }
-
-        void PrintTop() {
-            Value tmp = Calc.back();
-            Calc.pop_back();
-            printf("%g\n", std::get<double>(tmp));
-        }
-};
-
 Calculus ExecStack;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,7 +38,7 @@ Calculus ExecStack;
 void Interpreter(Bytecode byte) {
     switch (byte.inst) {
         case ndoubl: {
-            ExecStack.PushStack(byte.data);
+            ExecStack.PushCalc(byte.data);
             break;
         }
         case addD: {
