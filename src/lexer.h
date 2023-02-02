@@ -66,4 +66,6 @@ enum Token {
     
     // Built-in
     TOKEN_PRINT = -33,
+    
+    TOKEN_INSIG = -34,
 };

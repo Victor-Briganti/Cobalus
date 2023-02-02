@@ -9,11 +9,18 @@ enum Instruction {
 
     // Binary:
     // arithmetic
-    addD, // D = Double
+    addD, // D = data
     subD,
     mulD,
     divD,
-    
+    // Comparasion
+    eqD,
+    ineqD,
+    grD,
+    lsD,
+    greqD,
+    lseqD,
+
     // Unary
     negte, // negate '!'
     invsig, // invert signal '-'

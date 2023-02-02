@@ -98,6 +98,7 @@ int Tokenizer(std::shared_ptr<std::fstream> FileInput) {
     // Strings
     // ".*"
     if (Buffer == '"') {
+        StringBuffer.clear();
         FileInput->get(Buffer);
         while (isprint(Buffer)) {
             if (Buffer == '"') {

@@ -1,2 +1,9 @@
 #print(true);
-print(false);
+#print(false);
+#print(!false);
+#print(!true);
+#print(10 == 10);
+#print(10 == 11);
+#print("he" == "he");
+#print("he " == "he");
+#print(-1+1 == 0);

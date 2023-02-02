@@ -29,6 +29,25 @@ Instruction getInstruction(int Op) {
         case TOKEN_DIV: {
             return divD;
         }
+        case TOKEN_EQUAL: {
+            return eqD;
+        }
+        case TOKEN_INEQUAL: {
+            return ineqD;
+        }
+        case TOKEN_GREATER: {
+            return grD;
+        }
+        case TOKEN_LESS: {
+            return lsD;
+        }
+        case TOKEN_GREATEQ: {
+            return greqD;
+        }
+        case TOKEN_LESSEQ: {
+            return lseqD;
+        }
+        
     }
 }
 
@@ -72,7 +91,7 @@ void OperationAST::codegen() {
 
 void UnaryAST::codegen() {
     Expr->codegen();
-
+    
     Bytecode byte;
     if (Op == TOKEN_MINUS) {
         byte.inst = invsig;

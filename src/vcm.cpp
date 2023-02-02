@@ -99,6 +99,14 @@ void Interpreter(Bytecode byte) {
            
             ExecStack.invsigData();
             break;
+        }
+        case eqD: {
+            #ifdef DEBUG 
+                printf("[eqD]:\n");
+            #endif
+           
+            ExecStack.eqData();
+            break;
         } 
         case stio: {
             #ifdef DEBUG 

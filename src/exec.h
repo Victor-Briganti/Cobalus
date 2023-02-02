@@ -18,6 +18,13 @@ class Calculus {
         void subData();
         void mulData();
         void divData();
+        // Comparasion
+        void eqData();
+        //void ineqData();
+        //void grData();
+        //void lsData();
+        //void greqData();
+        //void lseqData();
 
         // Unary Operations on Doubles
         void negData();

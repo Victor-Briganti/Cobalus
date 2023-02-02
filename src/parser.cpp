@@ -30,9 +30,17 @@ int getPrecedence() {
         case TOKEN_LESSEQ: return 5;
         case TOKEN_PLUS: return 10;
         case TOKEN_MINUS: return 10;
+        case TOKEN_INSIG: return 15;
         case TOKEN_MUL: return 20;
         case TOKEN_DIV: return 20; // highest
     }
+}
+
+int isUnary() {
+    if (CurToken == TOKEN_MINUS || CurToken ==  TOKEN_NOT) {
+        return 1;
+    }
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,20 +90,10 @@ std::unique_ptr<DeclarationAST> ParenParser() {
     return Expr;
 }
 
-// unaryexpr -> '!'|'-' expression
-std::unique_ptr<DeclarationAST> UnaryParser() {
-    int Op = CurToken;
-    getNextToken(); // consume '!'|'-'
-
-    auto Expr = ExpressionParser();
-    return std::make_unique<UnaryAST>(std::move(Expr), Op);
-}
-
 // primary -> number
 //         -> bool
 //         -> string
 //         -> parenexpr
-//         -> unaryexpr
 std::unique_ptr<DeclarationAST> PrimaryParser() {
     switch(CurToken) {
         default:{
@@ -112,11 +110,26 @@ std::unique_ptr<DeclarationAST> PrimaryParser() {
             return BoolParser();
         case '(':
             return ParenParser();
-        case TOKEN_MINUS:
-            return UnaryParser();
-        case TOKEN_NOT:
-            return UnaryParser();
     }
+}
+
+// unaryexpr -> '!'|'-' unary
+//           -> primary
+std::unique_ptr<DeclarationAST> UnaryParser() {
+    // If the current token is not a operator, it must be a primary
+    if (!isUnary() || CurToken == '(' || CurToken == ',') {
+        return PrimaryParser();
+    }
+    
+    // If is a unary operator read it
+    int Op = CurToken;
+    getNextToken(); // consume '!'|'-'
+    
+    auto Operand = UnaryParser();
+    if (!Operand) {
+        return nullptr;
+    }
+    return std::make_unique<UnaryAST>(std::move(Operand), Op);
 }
 
 // operation -> number | number '+' operation
@@ -137,7 +150,7 @@ std::unique_ptr<DeclarationAST> OperationParser(int PrecLHS,
         getNextToken(); // consume operator
 
         // Parse the RHS of the expression 
-        auto RHS = PrimaryParser();
+        auto RHS = UnaryParser();
         if (!RHS) {
             return nullptr;
         }
@@ -149,12 +162,12 @@ std::unique_ptr<DeclarationAST> OperationParser(int PrecLHS,
         // one parses the RHS
         if (PrecRHS < NextPrec) {
             // Removing PrecRHS+1 if error is that
-            RHS = OperationParser(PrecRHS, std::move(RHS));
+            RHS = OperationParser(PrecRHS+1, std::move(RHS));
             if (!RHS) {
                 return nullptr;
             }
         }
-
+    
         // Merge LHS/RHS
         LHS = std::make_unique<OperationAST>(std::move(LHS), std::move(RHS), 
                                             Op);
@@ -163,7 +176,7 @@ std::unique_ptr<DeclarationAST> OperationParser(int PrecLHS,
 
 // expression -> operation
 std::unique_ptr<DeclarationAST> ExpressionParser() {
-    auto LHS = PrimaryParser();
+    auto LHS = UnaryParser();
     if (!LHS) {
         return nullptr;
     }
