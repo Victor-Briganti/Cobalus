@@ -4,12 +4,17 @@
 enum Instruction {
     ndoubl,
 
-    // Arithmetic
+    // Binary:
+    // arithmetic
     addD, // D = Double
     subD,
     mulD,
     divD,
     
+    // Unary
+    negte, // negate '!'
+    invsig, // invert signal '-'
+
     // Built-in Function
     stio, // print
 };

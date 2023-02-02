@@ -68,6 +68,22 @@ void Interpreter(Bytecode byte) {
             ExecStack.mulDouble();
             break;
         }
+        case negte: {
+            #ifdef DEBUG 
+                printf("[negte]:\n");
+            #endif
+           
+            ExecStack.negDouble();
+            break;
+        }
+        case invsig: {
+            #ifdef DEBUG 
+                printf("[invsig]:\n");
+            #endif
+           
+            ExecStack.invsigDouble();
+            break;
+        } 
         case stio: {
             #ifdef DEBUG 
                 printf("[stdio]:\n");

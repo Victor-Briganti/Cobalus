@@ -41,7 +41,7 @@ class DoubleAST : public ExpressionAST {
         void codegen() override;
 };
 
-// Define every type of operation
+// Define Binary operation
 class OperationAST : public ExpressionAST {
     std::unique_ptr<DeclarationAST> LHS;
     std::unique_ptr<DeclarationAST> RHS;
@@ -53,6 +53,18 @@ class OperationAST : public ExpressionAST {
                      int Op) 
         : LHS(std::move(LHS)), RHS(std::move(RHS)), Op(Op) {}
     
+        void codegen() override;
+};
+
+// Define Unary operation
+class UnaryAST : public ExpressionAST {
+    std::unique_ptr<DeclarationAST> Expr;
+    int Op;
+
+    public:
+        UnaryAST(std::unique_ptr<DeclarationAST> Expr, int Op)
+            : Expr(std::move(Expr)), Op(Op) {}
+
         void codegen() override;
 };
 

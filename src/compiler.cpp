@@ -54,6 +54,20 @@ void OperationAST::codegen() {
     return;
 }
 
+void UnaryAST::codegen() {
+    Expr->codegen();
+
+    Bytecode byte;
+    if (Op == TOKEN_MINUS) {
+        byte.inst = invsig;
+    }
+    if (Op == TOKEN_NOT) {
+        byte.inst = negte;
+    }
+    PushStack(byte);
+    return;
+}
+
 void PrintAST::codegen() {
     Expr->codegen();
 

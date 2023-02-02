@@ -102,6 +102,40 @@ void Calculus::divDouble() {
     Calc.push_back(Right);
 }
 
+// - double
+void Calculus::invsigDouble() {
+    Value Expr = Calc.back();
+    Calc.pop_back();
+    
+    #ifdef DEBUG 
+        printf("  -\n");
+        printf("  %g\n", std::get<double>(Expr));
+    #endif
+
+    Calc.push_back(-std::get<double>(Expr));
+}
+
+// ! double
+void Calculus::negDouble() {
+    Value Expr = Calc.back();
+    Calc.pop_back();
+    
+    #ifdef DEBUG 
+        printf("  !\n");
+        printf("  %g\n", std::get<double>(Expr));
+    #endif
+    
+    if(!std::get<double>(Expr)) {
+        Value tmp = 1.0;
+        Calc.push_back(tmp);
+        return;
+    } else {
+        Value tmp = 0.0;
+        Calc.push_back(tmp);
+        return;
+    }
+}
+
 void Calculus::PrintTop() {
     Value tmp = Calc.back();
     Calc.pop_back();

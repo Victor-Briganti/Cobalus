@@ -10,12 +10,16 @@ class Calculus {
         // Operations on stack
         void PushCalc(Value byte);
 
-        // Operation for Double Values
+        // Binary Operations on Doubles
         // Arithmetic 
         void addDouble();
         void subDouble();
         void mulDouble();
         void divDouble();
+
+        // Unary Operations on Doubles
+        void negDouble();
+        void invsigDouble();
         
         // Built-in
         void PrintTop(); // print
