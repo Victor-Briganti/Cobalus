@@ -44,7 +44,7 @@ int getPrecedence() {
 ///////////////////////////////////////////////////////////////////////////////
 
 // Forward definition
-std::unique_ptr<DeclarationAST> ExpressionAST();
+std::unique_ptr<DeclarationAST> ExpressionParser();
 
 // number -> double
 std::unique_ptr<DeclarationAST> DoubleParser() {
@@ -52,13 +52,35 @@ std::unique_ptr<DeclarationAST> DoubleParser() {
     return std::make_unique<DoubleAST>(DoubleBuffer);
 }
 
+// parenexpr -> '(' expression ')'
+std::unique_ptr<DeclarationAST> ParenParser() {
+    getNextToken(); // consume '('
+    
+    auto Expr = ExpressionParser();
+    if (!Expr) {
+        return nullptr;
+    }
+
+    if (CurToken != ')') {
+       PushError(Identifier, "expected a '('", 1); 
+       return nullptr;
+    }
+    getNextToken(); // consume ')'
+    return Expr;
+}
+
 // primary -> number
+//         -> parenexpr
 std::unique_ptr<DeclarationAST> PrimaryParser() {
     switch(CurToken) {
-        default:
-            return nullptr; // needs to return a error
+        default:{
+            PushError(Identifier, "expression not identified", 1); 
+            return nullptr;
+        }
         case TOKEN_DOUBLE:
             return DoubleParser();
+        case '(':
+            return ParenParser();
     }
 }
 
@@ -114,9 +136,36 @@ std::unique_ptr<DeclarationAST> ExpressionParser() {
     return OperationParser(0, std::move(LHS));
 }
 
+// printstmt -> print parenexpr
+std::unique_ptr<DeclarationAST> PrintParser() {
+    getNextToken(); // consume print
+    
+    if (CurToken != '(') {
+       PushError(Identifier, "expected a '('", 1); 
+       return nullptr;
+    }
+    
+    auto Expr = ParenParser();
+    if (!Expr) {
+        return nullptr;
+    }
+
+    return std::make_unique<PrintAST>(std::move(Expr));
+}
+
 // statement -> expression
+//              printstmt
 std::unique_ptr<DeclarationAST> StatementParser() {
-    return ExpressionParser();
+    switch(CurToken) {
+        case TOKEN_PRINT:
+            return PrintParser();
+        case TOKEN_DOUBLE:
+            return ExpressionParser();
+        default:{
+            PushError(Identifier, "statement not identified", 1); 
+            return nullptr;
+        }
+    }
 }
 
 // declaration -> statement
@@ -128,10 +177,13 @@ std::unique_ptr<DeclarationAST> DeclarationParser() {
 std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<std::fstream> FileInput) 
 {
     // Set file as global
-    FileParser = FileInput;
-    
+    FileParser = FileInput;    
     getNextToken(); // Get the first token
-
+    
+    if (CurToken == TOKEN_EOF) {
+        return nullptr;
+    }
+    
     auto Program = DeclarationParser();
     if (!Program) {
         return nullptr;

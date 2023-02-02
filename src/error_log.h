@@ -19,7 +19,7 @@ public:
     void PrintError() {
         // 1 is a warning
         if (Level == 1){
-            printf("Warning: %s , %s on line %d\n", Error.c_str(), 
+            printf("Warning: %s, %s on line %d\n", Error.c_str(), 
                                             Identifier.c_str(), Line);
         }
         // 2 is a execution error

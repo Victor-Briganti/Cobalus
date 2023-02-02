@@ -66,4 +66,7 @@ enum Token {
     TOKEN_OR = -31,
     // unary
     TOKEN_NOT = -32,
+    
+    // Built-in
+    TOKEN_PRINT = -33,
 };

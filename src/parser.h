@@ -63,7 +63,18 @@ class OperationAST : public ExpressionAST {
                      int Op) 
         : LHS(std::move(LHS)), RHS(std::move(RHS)), Op(Op) {}
     
-    void codegen() override;
+        void codegen() override;
+};
+
+// Built-in Function
+class PrintAST : public StatementAST {
+    std::unique_ptr<DeclarationAST> Expr;
+
+    public:
+        PrintAST(std::unique_ptr<DeclarationAST> Expr) 
+            : Expr(std::move(Expr)) {}
+        
+        void codegen() override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

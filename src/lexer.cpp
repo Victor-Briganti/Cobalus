@@ -36,7 +36,7 @@ void WhiteSpaceRM(std::shared_ptr<std::fstream> FileInput) {
 }
 
 // Compare strings
-Token checkId(int lenght, char Comp[lenght], Token type, 
+Token checkId(int lenght, char Comp[], Token type, 
               std::shared_ptr<std::fstream> FileInput) 
 {
     char Peek[lenght];
@@ -214,6 +214,11 @@ int Tokenizer(std::shared_ptr<std::fstream> FileInput) {
                 Identifier += Buffer;
                 char Comp[] = "f";
                 return checkId(1, Comp, TOKEN_IF, FileInput);
+            }
+            case 'p': {
+                Identifier += Buffer;
+                char Comp[] = "rint";
+                return checkId(4, Comp, TOKEN_PRINT, FileInput);
             }
             case 'e': {
                 Identifier += Buffer;

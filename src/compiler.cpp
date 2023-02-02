@@ -45,11 +45,20 @@ void DoubleAST::codegen() {
 }
 
 void OperationAST::codegen() {
-    if (LHS) { LHS->codegen(); }
-    if (RHS) { RHS->codegen(); }
+    LHS->codegen();
+    RHS->codegen();
     
     Bytecode byte;
     byte.inst = getInstruction(Op);
+    PushStack(byte);
+    return;
+}
+
+void PrintAST::codegen() {
+    Expr->codegen();
+
+    Bytecode byte;
+    byte.inst = stio;
     PushStack(byte);
     return;
 }

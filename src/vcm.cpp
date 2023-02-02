@@ -100,7 +100,6 @@ Calculus ExecStack;
 ////////////                    VM EXECUTION                       ////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-
 void Interpreter(Bytecode byte) {
     switch (byte.inst) {
         case ndoubl: {
@@ -140,11 +139,10 @@ void CodeExec() {
     for (int i = 0; i < CobaluStack.size(); i++) {
         Interpreter(CobaluStack[i]);
     }
-    
     // If there is any error show all of them
-    if (!NumErrors()) {
+    if (NumErrors()) {
        ShowErrors();
-        return;
+       return;
     }
 }
 
