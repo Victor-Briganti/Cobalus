@@ -108,6 +108,46 @@ void Interpreter(Bytecode byte) {
             ExecStack.eqData();
             break;
         } 
+        case ineqD: {
+            #ifdef DEBUG 
+                printf("[ineqD]:\n");
+            #endif
+           
+            ExecStack.ineqData();
+            break;
+        } 
+        case grD: {
+            #ifdef DEBUG 
+                printf("[grD]:\n");
+            #endif
+           
+            ExecStack.grData();
+            break;
+        } 
+        case lsD: {
+            #ifdef DEBUG 
+                printf("[lsD]:\n");
+            #endif
+           
+            ExecStack.lsData();
+            break;
+        } 
+        case greqD: {
+            #ifdef DEBUG 
+                printf("[greqD]:\n");
+            #endif
+           
+            ExecStack.greqData();
+            break;
+        } 
+        case lseqD: {
+            #ifdef DEBUG 
+                printf("[lseqD]:\n");
+            #endif
+           
+            ExecStack.lseqData();
+            break;
+        } 
         case stio: {
             #ifdef DEBUG 
                 printf("[stdio]:\n");

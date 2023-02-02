@@ -20,11 +20,11 @@ class Calculus {
         void divData();
         // Comparasion
         void eqData();
-        //void ineqData();
-        //void grData();
-        //void lsData();
-        //void greqData();
-        //void lseqData();
+        void ineqData();
+        void grData();
+        void lsData();
+        void greqData();
+        void lseqData();
 
         // Unary Operations on Doubles
         void negData();

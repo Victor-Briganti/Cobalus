@@ -7,6 +7,12 @@ int TypesMatch(int R, int L) {
     if (R == 0 && L == 2) {
         return 0;
     }
+    if (R == 1 && L == 0) {
+        return 0;
+    }
+    if (R == 0 && L == 1) {
+        return 0;
+    }
     if (R == 2 && L == 0) {
         return 0;
     }
@@ -274,6 +280,9 @@ void Calculus::negData() {
     }
 }
 
+// double == double
+// bool == bool
+// string == string
 void Calculus::eqData() {
     if (EmptyStack()) {
         return;
@@ -284,7 +293,7 @@ void Calculus::eqData() {
 
     Value Left = Calc.back();
     Calc.pop_back();
-    
+   
     if (!TypesMatch(Left.index(), Right.index())) {
         PushError("", "types don't match", 2);        
         return;
@@ -306,16 +315,6 @@ void Calculus::eqData() {
         printf("  ==\n");
         printf("  %g\n", std::get<double>(Right));
      }
-     if (Right.index() == 1 && Left.index() == 0) {
-        printf("  %d\n", std::get<bool>(Left));
-        printf("  ==\n");
-        printf("  %g\n", std::get<double>(Right));
-     }
-     if (Right.index() == 0 && Left.index() == 1) {
-        printf("  %g\n", std::get<double>(Left));
-        printf("  ==\n");
-        printf("  %d\n", std::get<bool>(Right));
-     }
     #endif
     
     if (Right.index() == 0 && Left.index() == 0){
@@ -328,18 +327,280 @@ void Calculus::eqData() {
         Calc.push_back(Right);
         return;
     }
+    if (Right.index() == 1 && Right.index() == 1){
+        Right = std::get<bool>(Left) == std::get<bool>(Right);
+        Calc.push_back(Right);
+        return;
+    }
+    return;
+}
+
+// double != double
+// bool != bool
+// string != string
+void Calculus::ineqData() {
+    if (EmptyStack()) {
+        return;
+    }
+
+    Value Right = Calc.back();
+    Calc.pop_back();
+
+    Value Left = Calc.back();
+    Calc.pop_back();
+    
+    if (!TypesMatch(Left.index(), Right.index())) {
+        PushError("", "types don't match", 2);        
+        return;
+    }
+
+    #ifdef DEBUG 
+     if (Right.index() == 2) {
+        printf("  %s\n", std::get<std::string>(Left).c_str());
+        printf("  !=\n");
+        printf("  %s\n", std::get<std::string>(Right).c_str());
+     }
+     if (Right.index() == 1 && Left.index() == 1){
+        printf("  %d\n", std::get<bool>(Left));
+        printf("  !=\n");
+        printf("  %d\n", std::get<bool>(Right));
+     }
+     if (Right.index() == 0 && Left.index() == 0) {
+        printf("  %g\n", std::get<double>(Left));
+        printf("  !=\n");
+        printf("  %g\n", std::get<double>(Right));
+     }
+    #endif
+    
+    if (Right.index() == 0 && Left.index() == 0){
+        Right = (std::get<double>(Left) != std::get<double>(Right));
+        Calc.push_back(Right);
+        return;
+    }
+    if (Right.index() == 2){
+        Right = std::get<std::string>(Left) != std::get<std::string>(Right);
+        Calc.push_back(Right);
+        return;
+    }
     if (Right.index() == 0 && Right.index() == 1){
-        Right = std::get<double>(Left) == std::get<bool>(Right);
+        Right = std::get<double>(Left) != std::get<bool>(Right);
         Calc.push_back(Right);
         return;
     }
     if (Right.index() == 1 && Right.index() == 0){
-        Right = std::get<bool>(Left) == std::get<double>(Right);
+        Right = std::get<bool>(Left) != std::get<double>(Right);
         Calc.push_back(Right);
         return;
     }
     if (Right.index() == 1 && Right.index() == 1){
-        Right = std::get<bool>(Left) == std::get<bool>(Right);
+        Right = std::get<bool>(Left) != std::get<bool>(Right);
+        Calc.push_back(Right);
+        return;
+    }
+    return;
+}
+
+// double > double
+// bool > bool
+void Calculus::grData() {
+    if (EmptyStack()) {
+        return;
+    }
+
+    Value Right = Calc.back();
+    Calc.pop_back();
+
+    Value Left = Calc.back();
+    Calc.pop_back();
+    
+    if (!TypesMatch(Left.index(), Right.index())
+        || Left.index() == 2 || Right.index() == 2) {
+        PushError("", "types don't match", 2);        
+        return;
+    }
+
+    #ifdef DEBUG 
+     if (Right.index() == 1 && Left.index() == 1){
+        printf("  %d\n", std::get<bool>(Left));
+        printf("  >\n");
+        printf("  %d\n", std::get<bool>(Right));
+     }
+     if (Right.index() == 0 && Left.index() == 0) {
+        printf("  %g\n", std::get<double>(Left));
+        printf("  >\n");
+        printf("  %g\n", std::get<double>(Right));
+     }
+    #endif
+    
+    if (Right.index() == 0 && Left.index() == 0){
+        Right = (std::get<double>(Left) > std::get<double>(Right));
+        Calc.push_back(Right);
+        return;
+    }
+    if (Right.index() == 1 && Right.index() == 1){
+        Right = std::get<bool>(Left) > std::get<bool>(Right);
+        Calc.push_back(Right);
+        return;
+    }
+    return;
+}
+
+// double < double
+// bool < bool
+void Calculus::lsData() {
+    if (EmptyStack()) {
+        return;
+    }
+
+    Value Right = Calc.back();
+    Calc.pop_back();
+
+    Value Left = Calc.back();
+    Calc.pop_back();
+    
+    if (!TypesMatch(Left.index(), Right.index())
+        || Left.index() == 2 || Right.index() == 2) {
+        PushError("", "types don't match", 2);        
+        return;
+    }
+
+    #ifdef DEBUG 
+     if (Right.index() == 1 && Left.index() == 1){
+        printf("  %d\n", std::get<bool>(Left));
+        printf("  <\n");
+        printf("  %d\n", std::get<bool>(Right));
+     }
+     if (Right.index() == 0 && Left.index() == 0) {
+        printf("  %g\n", std::get<double>(Left));
+        printf("  <\n");
+        printf("  %g\n", std::get<double>(Right));
+     }
+    #endif
+    
+    if (Right.index() == 0 && Left.index() == 0){
+        Right = (std::get<double>(Left) < std::get<double>(Right));
+        Calc.push_back(Right);
+        return;
+    }
+    if (Right.index() == 1 && Right.index() == 1){
+        Right = std::get<bool>(Left) < std::get<bool>(Right);
+        Calc.push_back(Right);
+        return;
+    }
+    return;
+}
+
+// double >= double
+// bool >= bool
+void Calculus::greqData() {
+    if (EmptyStack()) {
+        return;
+    }
+
+    Value Right = Calc.back();
+    Calc.pop_back();
+
+    Value Left = Calc.back();
+    Calc.pop_back();
+    
+    if (!TypesMatch(Left.index(), Right.index())
+        || Left.index() == 2 || Right.index() == 2) 
+    {
+        PushError("", "types don't match", 2);        
+        return;
+    }
+
+    #ifdef DEBUG 
+     if (Right.index() == 1 && Left.index() == 1){
+        printf("  %d\n", std::get<bool>(Left));
+        printf("  >=\n");
+        printf("  %d\n", std::get<bool>(Right));
+     }
+     if (Right.index() == 0 && Left.index() == 0) {
+        printf("  %g\n", std::get<double>(Left));
+        printf("  >=\n");
+        printf("  %g\n", std::get<double>(Right));
+     }
+    #endif
+    
+    if (Right.index() == 0 && Left.index() == 0){
+        Right = (std::get<double>(Left) >= std::get<double>(Right));
+        Calc.push_back(Right);
+        return;
+    }
+    if (Right.index() == 2){
+        Right = std::get<std::string>(Left) >= std::get<std::string>(Right);
+        Calc.push_back(Right);
+        return;
+    }
+    if (Right.index() == 1 && Right.index() == 1){
+        Right = std::get<bool>(Left) >= std::get<bool>(Right);
+        Calc.push_back(Right);
+        return;
+    }
+    return;
+}
+
+// double <= double
+// bool <= bool
+void Calculus::lseqData() {
+    if (EmptyStack()) {
+        return;
+    }
+
+    Value Right = Calc.back();
+    Calc.pop_back();
+
+    Value Left = Calc.back();
+    Calc.pop_back();
+    
+    if (!TypesMatch(Left.index(), Right.index()) 
+            || Left.index() == 2 || Right.index() == 2) 
+    {
+        PushError("", "types don't match", 2);        
+        return;
+    }
+
+    #ifdef DEBUG 
+     if (Right.index() == 2) {
+        printf("  %s\n", std::get<std::string>(Left).c_str());
+        printf("  <=\n");
+        printf("  %s\n", std::get<std::string>(Right).c_str());
+     }
+     if (Right.index() == 1 && Left.index() == 1){
+        printf("  %d\n", std::get<bool>(Left));
+        printf("  <=\n");
+        printf("  %d\n", std::get<bool>(Right));
+     }
+     if (Right.index() == 0 && Left.index() == 0) {
+        printf("  %g\n", std::get<double>(Left));
+        printf("  <=\n");
+        printf("  %g\n", std::get<double>(Right));
+     }
+    #endif
+    
+    if (Right.index() == 0 && Left.index() == 0){
+        Right = (std::get<double>(Left) <= std::get<double>(Right));
+        Calc.push_back(Right);
+        return;
+    }
+    if (Right.index() == 2){
+        Right = std::get<std::string>(Left) <= std::get<std::string>(Right);
+        Calc.push_back(Right);
+        return;
+    }
+    if (Right.index() == 0 && Right.index() == 1){
+        Right = std::get<double>(Left) <= std::get<bool>(Right);
+        Calc.push_back(Right);
+        return;
+    }
+    if (Right.index() == 1 && Right.index() == 0){
+        Right = std::get<bool>(Left) <= std::get<double>(Right);
+        Calc.push_back(Right);
+        return;
+    }
+    if (Right.index() == 1 && Right.index() == 1){
+        Right = std::get<bool>(Left) <= std::get<bool>(Right);
         Calc.push_back(Right);
         return;
     }

@@ -7,3 +7,14 @@
 #print("he" == "he");
 #print("he " == "he");
 #print(-1+1 == 0);
+#print(false != false);
+#print(10 >= 10);
+#print(10 >= 11);
+#print(10 <= 10);
+#print(10 <= 3);
+#print(8 < 9);
+#print(8 < 4);
+#print(9 > 3);
+#print(9 > 12);
+#print("hello" != "hi");
+print(true > 10);

@@ -147,6 +147,7 @@ int Tokenizer(std::shared_ptr<std::fstream> FileInput) {
     if (Buffer == '<') {
         FileInput->get(Buffer);
         if (Buffer == '=') {
+            FileInput->get(Buffer);
             return TOKEN_LESSEQ; // '<='
         }
         return TOKEN_LESS; // '<'
@@ -154,6 +155,7 @@ int Tokenizer(std::shared_ptr<std::fstream> FileInput) {
     if (Buffer == '>') {
         FileInput->get(Buffer);
         if (Buffer == '=') { 
+            FileInput->get(Buffer);
             return TOKEN_GREATEQ; // '>='
         }
         return TOKEN_GREATER; // '>'
@@ -165,6 +167,7 @@ int Tokenizer(std::shared_ptr<std::fstream> FileInput) {
         FileInput->get(Buffer);
         if (Buffer == '=') {
             // A wild comparasion appears!
+            FileInput->get(Buffer);
             return TOKEN_INEQUAL; // '!='
         }
         return TOKEN_NOT; 
