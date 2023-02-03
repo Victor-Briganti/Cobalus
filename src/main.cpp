@@ -1,5 +1,9 @@
-#include "global.h"
-#include "vcm.h"
+#include "Headers/global.h"
+#include "Headers/error_log.h"
+#include "Headers/vcm.h"
+
+// Definition of the global class for errors
+Logging ErLogs;
 
 void Interpreter(std::fstream FileInput) {
     if (!FileInput.is_open()) {

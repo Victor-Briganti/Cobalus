@@ -1,5 +1,5 @@
-#include "lexer.h"
-#include "error_log.h"
+#include "Headers/error_log.h"
+#include "Headers/lexer.h"
 
 // Buffers
 std::string Identifier;
@@ -15,7 +15,7 @@ void WhiteSpaceRM(std::shared_ptr<std::fstream> FileInput) {
 
         // Add lines
         if (Buffer == '\n') {
-            LineNumber++;
+            ErLogs.AddLine();
         }
 
         if (FileInput->eof()) { 

@@ -1,15 +1,13 @@
-#include "error_log.h"
-#include "exec.h"
-#include "vcm.h" 
-#include "compiler.h"
+#include "Headers/error_log.h"
+#include "Headers/exec.h"
+#include "Headers/vcm.h" 
 
 // +++++++++++++++++
 // ++++ GLOBALS ++++
 // +++++++++++++++++
 
 // Stack and pointer of instructions
-std::vector<Bytecode> CobaluStack; // Stack of instructions
-int ps; // pointer for instructions 
+std::vector<Bytecode> CobaluStack; // Stack of instructions 
 
 // Function for stack of instructions
 void PushStack(Bytecode byte) {
@@ -199,7 +197,7 @@ void Interpreter(Bytecode byte, int offset) {
         default: {
             std::string Error = "Instruction was not reconized";
             std::string Id = ".";
-            PushError(Id, Error, 2);
+            ErLogs.PushError(Id, Error, 2);
             break; // the show must go on
         }
     }
@@ -212,8 +210,8 @@ void CodeExec() {
     }
     
     // If there is any error show all of them
-    if (NumErrors()) {
-       ShowErrors();
+    if (ErLogs.NumErrors()) {
+       ErLogs.ShowErrors();
        return;
     }
    

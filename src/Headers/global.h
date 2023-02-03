@@ -6,7 +6,6 @@
 #include <iostream>
 #include <iomanip>
 #include <memory>
-#include <stack>
 #include <string> 
 #include <unordered_map>
 #include <variant>
@@ -17,4 +16,4 @@
 
 // Definition for DEBUGs
 //#define DEBUG
-#define STACK
+//#define STACK

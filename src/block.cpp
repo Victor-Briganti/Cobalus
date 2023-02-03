@@ -1,6 +1,9 @@
-#include "block.h"
-#include "error_log.h"
-#include "vcm.h"
+#include "Headers/block.h"
+#include "Headers/vcm.h"
+
+///////////////////////////////////////////////////////////////////////////////
+////////////                    BLOCK METHODS                      ////////////
+///////////////////////////////////////////////////////////////////////////////
 
 int BlockAST::setOffset(std::string Variable) {
     OffsetMap[Variable] = SizeStack();

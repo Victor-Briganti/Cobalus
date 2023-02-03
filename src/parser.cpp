@@ -1,6 +1,6 @@
-#include "error_log.h"
-#include "lexer.h"
-#include "parser.h"
+#include "Headers/error_log.h"
+#include "Headers/lexer.h"
+#include "Headers/parser.h"
 
 // +++++++++++++++++++++++
 // +-----+ GLOBALS +-----+
@@ -30,7 +30,6 @@ int getPrecedence() {
         case TOKEN_LESSEQ: return 5;
         case TOKEN_PLUS: return 10;
         case TOKEN_MINUS: return 10;
-        case TOKEN_INSIG: return 15;
         case TOKEN_MUL: return 20;
         case TOKEN_DIV: return 20; // highest
     }
@@ -92,7 +91,7 @@ std::unique_ptr<DeclarationAST> ParenParser(std::shared_ptr<BlockAST> CurBlock)
     }
 
     if (CurToken != ')') {
-       PushError(Identifier, "expected a '('", 1); 
+       ErLogs.PushError(Identifier, "expected a '('", 1); 
        return nullptr;
     }
     getNextToken(); // consume ')'
@@ -119,7 +118,7 @@ std::unique_ptr<DeclarationAST> PrimaryParser(std::shared_ptr<BlockAST> CurBlock
 {
     switch(CurToken) {
         default:{
-            PushError(Identifier, "expression not identified", 1); 
+            ErLogs.PushError(Identifier, "expression not identified", 1); 
             return nullptr;
         }
         case TOKEN_DOUBLE:
@@ -221,7 +220,7 @@ std::unique_ptr<DeclarationAST> PrintParser(std::shared_ptr<BlockAST> CurBlock)
     getNextToken(); // consume print
     
     if (CurToken != '(') {
-       PushError(Identifier, "expected a '('", 1); 
+       ErLogs.PushError(Identifier, "expected a '('", 1); 
        return nullptr;
     }
     
@@ -254,7 +253,7 @@ std::unique_ptr<DeclarationAST> \
     getNextToken(); // consume '='
     auto Expr = ExpressionParser(CurBlock);
     if (!Expr) {
-       PushError(Identifier, "expression was not reconized", 1); 
+       ErLogs.PushError(Identifier, "expression was not reconized", 1); 
        return nullptr;
     }
     return std::make_unique<VarDeclAST>(VarName, Decl, std::move(Expr), 
@@ -290,7 +289,7 @@ std::unique_ptr<DeclarationAST> BlockParser(std::shared_ptr<BlockAST> CurBlock)
     auto Inside = InsideParser(CodeBlock);
 
     if (CurToken != '}') {
-       PushError("", "expected a '}'", 1); 
+       ErLogs.PushError("", "expected a '}'", 1); 
        return nullptr;
     }
     getNextToken(); // consume '}'
@@ -313,7 +312,7 @@ std::unique_ptr<DeclarationAST> \
         case '{':
             return BlockParser(CurBlock); 
         default: {
-            PushError(Identifier, "statement not identified", 1); 
+            ErLogs.PushError(Identifier, "statement not identified", 1); 
             return nullptr;
         }
     }

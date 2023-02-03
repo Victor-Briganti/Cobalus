@@ -48,3 +48,7 @@ Bytecode RetStack(int);
 
 // VM Operation
 void InitVM(std::shared_ptr<std::fstream> FileInput);
+
+// Compiler operation(compiler.cpp)
+// Declaration for codegeneration
+void Compile(std::shared_ptr<std::fstream> FileComp);

@@ -1,8 +1,8 @@
-#include "error_log.h"
-#include "exec.h" 
-#include "vcm.h"
+#include "Headers/error_log.h"
+#include "Headers/exec.h" 
+#include "Headers/vcm.h"
 
-// Compare values
+// Verification for Types
 int TypesMatch(int R, int L) {
     if (R == doub && L == str) {
         return 0;
@@ -28,14 +28,21 @@ int TypesMatch(int R, int L) {
     return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+////////////                    BYTECODE OPERATIONS                ////////////
+///////////////////////////////////////////////////////////////////////////////
+
+// If the stack of values is empty return a error
 int Calculus::EmptyStack() {
     if (Calc.empty()) {
-        PushError("", "illegal instruction stack of execution is empty", 2);        
+        ErLogs.PushError("", \
+            "illegal instruction stack of execution is empty", 2);        
         return 1;
     }
     return 0;
 }
 
+// Insert Values on the stack of execution
 void Calculus::PushCalc(Value byte) {
     #ifdef DEBUG
         switch(byte.index()) {
@@ -79,12 +86,12 @@ void Calculus::addData() {
     
     // If is not a string or a a double give a error
     if ((Right.index()%2) || (Left.index()%2)) {
-        PushError("", "operation on type not permited", 2);
+        ErLogs.PushError("", "operation on type not permited", 2);
         return;
     }
     // It the types are not the same give a error
     if (Right.index() != Left.index()) {
-        PushError("", "types don't match", 2);        
+        ErLogs.PushError("", "types don't match", 2);        
         return;
     } 
 
@@ -126,13 +133,13 @@ void Calculus::subData() {
     Calc.pop_back();
 
     if (Right.index() != Left.index()) {
-        PushError("", "types don't match", 2);        
+        ErLogs.PushError("", "types don't match", 2);        
         return;
     }
     // I already search to see if the types are equal, if they are equal but
     // are also a string give a error
     if (Right.index() == str) {
-        PushError("", "illegal instruction in strings", 2);        
+        ErLogs.PushError("", "illegal instruction in strings", 2);        
         return;
     }
 
@@ -159,11 +166,11 @@ void Calculus::mulData() {
     Calc.pop_back();
     
     if (Right.index() != Left.index()) {
-        PushError("", "types don't match", 2);        
+        ErLogs.PushError("", "types don't match", 2);        
         return;
     }
     if (Right.index() == str) {
-        PushError("", "illegal instruction in strings", 2);        
+        ErLogs.PushError("", "illegal instruction in strings", 2);        
         return;
     }
 
@@ -190,11 +197,11 @@ void Calculus::divData() {
     Calc.pop_back();
     
     if (Right.index() != Left.index()) {
-        PushError("", "types don't match", 2);        
+        ErLogs.PushError("", "types don't match", 2);        
         return;
     }
     if (Right.index() == str) {
-        PushError("", "illegal instruction in strings", 2);        
+        ErLogs.PushError("", "illegal instruction in strings", 2);        
         return;
     }
 
@@ -218,11 +225,11 @@ void Calculus::invsigData() {
     Calc.pop_back();
    
     if (Expr.index() == boo) {
-        PushError("", "illegal instruction on booleans", 2);        
+        ErLogs.PushError("", "illegal instruction on booleans", 2);        
         return;
     }
     if (Expr.index() == str) {
-        PushError("", "illegal instruction in strings", 2);        
+        ErLogs.PushError("", "illegal instruction in strings", 2);        
         return;
     }
     
@@ -245,7 +252,7 @@ void Calculus::negData() {
     Calc.pop_back();
     
     if (Expr.index() == str) {
-        PushError("", "illegal instruction in strings", 2);        
+        ErLogs.PushError("", "illegal instruction in strings", 2);        
         return;
     }
     
@@ -305,7 +312,7 @@ void Calculus::eqData() {
     Calc.pop_back();
    
     if (!TypesMatch(Left.index(), Right.index())) {
-        PushError("", "types don't match", 2);        
+        ErLogs.PushError("", "types don't match", 2);        
         return;
     }
 
@@ -360,7 +367,7 @@ void Calculus::ineqData() {
     Calc.pop_back();
     
     if (!TypesMatch(Left.index(), Right.index())) {
-        PushError("", "types don't match", 2);        
+        ErLogs.PushError("", "types don't match", 2);        
         return;
     }
 
@@ -424,11 +431,11 @@ void Calculus::grData() {
     Calc.pop_back();
     
     if (!TypesMatch(Left.index(), Right.index())) {
-        PushError("", "types don't match", 2);        
+        ErLogs.PushError("", "types don't match", 2);        
         return;
     }
     if(Right.index() == str) {
-        PushError("", "operation not permited on strings", 2);        
+        ErLogs.PushError("", "operation not permited on strings", 2);        
         return;
     }
 
@@ -472,11 +479,11 @@ void Calculus::lsData() {
     Calc.pop_back();
     
     if (!TypesMatch(Left.index(), Right.index())) {
-        PushError("", "types don't match", 2);        
+        ErLogs.PushError("", "types don't match", 2);        
         return;
     }
     if(Right.index() == str) {
-        PushError("", "operation not permited on strings", 2);        
+        ErLogs.PushError("", "operation not permited on strings", 2);        
         return;
     }
 
@@ -521,11 +528,11 @@ void Calculus::greqData() {
     
     if (!TypesMatch(Left.index(), Right.index()))
     {
-        PushError("", "types don't match", 2);        
+        ErLogs.PushError("", "types don't match", 2);        
         return;
     }
     if(Right.index() == str) {
-        PushError("", "operation not permited on strings", 2);        
+        ErLogs.PushError("", "operation not permited on strings", 2);        
         return;
     }
 
@@ -575,11 +582,11 @@ void Calculus::lseqData() {
     
     if (!TypesMatch(Left.index(), Right.index())) 
     {
-        PushError("", "types don't match", 2);        
+        ErLogs.PushError("", "types don't match", 2);        
         return;
     }
     if(Right.index() == str) {
-        PushError("", "operation not permited on strings", 2);        
+        ErLogs.PushError("", "operation not permited on strings", 2);        
         return;
     }
 
@@ -614,6 +621,7 @@ void Calculus::lseqData() {
     return;
 }
 
+// Built-in Print
 void Calculus::PrintTop() {
     if (EmptyStack()) {
         return;
@@ -646,6 +654,7 @@ void Calculus::PrintTop() {
     }
 }
 
+// Store Variable and it's offset
 void Calculus::stvarData(int offset) {
     if (EmptyStack()) {
         return;
@@ -690,6 +699,7 @@ void Calculus::stvarData(int offset) {
     return;
 }
 
+// Return the value of the variable
 void Calculus::retvarData(int offset) {
     #ifdef DEBUG
     Bytecode var = RetStack(offset);

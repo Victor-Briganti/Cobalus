@@ -12,7 +12,6 @@ class BlockAST {
     // This will be a map that stores the offset of variables and functions
     std::unordered_map<std::string, int> OffsetMap;
     
-
     public:
         BlockAST(std::shared_ptr<BlockAST> ParentBlock ,int State) 
             : State(State), ParentBlock(ParentBlock)  {}

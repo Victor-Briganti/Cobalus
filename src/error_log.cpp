@@ -1,33 +1,41 @@
-#include "error_log.h"
+#include "Headers/error_log.h"
 
-std::stack<Logging> Logs;
-
-// Used to save LineNumber where the error occur
-int LineNumber;
+void Logging::ShowErrors() {
+    for (int i=0; i < StackError.size(); i++) {
+        // 1 is a warning
+        if (StackError[i].Level == 1){
+            printf("Warning: %s on %s. Line %d.", StackError[i].Id.c_str(), 
+                StackError[i].Error.c_str(), StackError[i].Line);
+        }
+        // 2 is a execution error
+        if (StackError[i].Level == 2) {
+            printf("Error: %s on %s\n", StackError[i].Error.c_str(),
+                StackError[i].Id.c_str());
+        }
+    }
+}
 
 // Insert a new error into the stack
-void PushError(std::string Identifier, std::string Error, int Level) {
-    // I know it's a little dirty but for now it is what it is
+void Logging::PushError(std::string Identifier, std::string Error, int Level) {
+    Log Message;
+    Message.Id = Identifier;
+    Message.Error = Error;
+    Message.Level = Level;
+
+    // 1 is for errors during parser
+    // 2 is for errors during execution
     if (Level == 1){
-        Logging ErrorLog = Logging(Identifier, Error, Level, LineNumber);
-        Logs.push(ErrorLog);
-    } 
-    if (Level == 2) {
-        Logging ErrorLog = Logging(Identifier, Error, Level);
-        Logs.push(ErrorLog);
+        Message.Line = LineNumber;
     }
+    StackError.push_back(Message);
 }
 
 // Return the number of errors
-int NumErrors() {
-    return Logs.size();
+int Logging::NumErrors() {
+    return StackError.size();
 }
 
-// Print the errors
-void ShowErrors() {
-    while(!Logs.empty()) {
-        auto Show = Logs.top();
-        Logs.pop();
-        Show.PrintError();
-    }
+// Keep track of line number
+void Logging::AddLine() {
+    LineNumber++;
 }

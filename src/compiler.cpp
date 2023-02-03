@@ -1,14 +1,9 @@
-#include "global.h"
-#include "error_log.h"
-#include "parser.h"
-#include "compiler.h"
-#include "lexer.h"
-#include "vcm.h"
+#include "Headers/error_log.h"
+#include "Headers/lexer.h"
+#include "Headers/parser.h"
+#include "Headers/vcm.h"
 
-// +++++++++++++++++
-// ++++ HELPERS ++++
-// +++++++++++++++++
-
+// Helper for instructions
 Instruction getInstruction(int Op) {
     switch(Op) {
         case TOKEN_PLUS: {
@@ -42,8 +37,8 @@ Instruction getInstruction(int Op) {
             return lseqD;
         }
         default: {
-            PushError("", "illegal instruction", 1); 
-            ShowErrors();
+            ErLogs.PushError("", "illegal instruction", 1); 
+            ErLogs.ShowErrors();
             exit(0);
         }
     }
@@ -123,7 +118,7 @@ void VarValAST::codegen() {
     byte.inst = varrt;
     byte.offset = ParentBlock->getOffset(Variable);
     if (byte.offset == -1) {
-        PushError(Variable, "not identified", 2);        
+        ErLogs.PushError(Variable, "not identified", 2);        
         Bytecode byte;
         byte.inst = none;
         byte.data = nullptr;
