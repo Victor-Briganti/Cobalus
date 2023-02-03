@@ -1,0 +1,6 @@
+var a = 10;
+{
+    var a = 20;
+    print(a);
+}
+print(a);

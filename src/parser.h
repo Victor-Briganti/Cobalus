@@ -134,6 +134,19 @@ class VarValAST : public StatementAST {
         void codegen() override;
 };
 
+// Struct to implement inside the block
+class InsideAST : public StatementAST {
+    std::unique_ptr<DeclarationAST> Chain;
+    std::unique_ptr<DeclarationAST> Exec;
+
+    public:
+        InsideAST(std::unique_ptr<DeclarationAST> Chain, 
+                  std::unique_ptr<DeclarationAST> Exec)
+            : Chain(std::move(Chain)), Exec(std::move(Exec)) {}
+        
+        void codegen() override;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /////////                           FUNCTIONS                         /////////
 ///////////////////////////////////////////////////////////////////////////////

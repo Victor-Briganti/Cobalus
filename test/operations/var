@@ -1,5 +1,5 @@
 var a = 10;
 a = 20;
-a = 5;
+var a = "oi";
 a = "oi";
 print(a);

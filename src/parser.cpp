@@ -50,6 +50,8 @@ int isUnary() {
 // Forward definition
 std::unique_ptr<DeclarationAST> ExpressionParser \
     (std::shared_ptr<BlockAST> CurBlock);
+std::unique_ptr<DeclarationAST> StatementParser \
+    (std::shared_ptr<BlockAST> CurBlock);
 
 // number -> double
 std::unique_ptr<DeclarationAST> DoubleParser() {
@@ -259,8 +261,45 @@ std::unique_ptr<DeclarationAST> \
                                         CurBlock);
 }
 
+// inside -> statement
+std::unique_ptr<DeclarationAST> InsideParser(std::shared_ptr<BlockAST> CurBlock) {
+    if (CurToken == '}') {
+        return std::make_unique<NullAST>();
+    }
+
+    auto Stmt = StatementParser(CurBlock);
+    if (CurToken == ';') {
+        getNextToken(); // consume ';'
+    }
+    if (!Stmt) {
+        return nullptr;
+    }
+
+    return std::make_unique<InsideAST>(InsideParser(CurBlock), 
+                                       std::move(Stmt));
+}
+
+// block -> '{' inside '}'
+std::unique_ptr<DeclarationAST> BlockParser(std::shared_ptr<BlockAST> CurBlock)
+{
+    getNextToken(); // consume '{'
+
+    std::shared_ptr<BlockAST> CodeBlock = 
+        std::make_shared<BlockAST>(CurBlock, COMMON);
+
+    auto Inside = InsideParser(CodeBlock);
+
+    if (CurToken != '}') {
+       PushError("", "expected a '}'", 1); 
+       return nullptr;
+    }
+    getNextToken(); // consume '}'
+    return Inside;
+}
+
 // statement -> printstmt
 //           |  vardecl
+//           |  block
 std::unique_ptr<DeclarationAST> \
     StatementParser(std::shared_ptr<BlockAST> CurBlock) 
 {
@@ -271,6 +310,8 @@ std::unique_ptr<DeclarationAST> \
             return VarAssignParser(CurBlock);
         case TOKEN_ID:
             return VarAssignParser(CurBlock); // Change this when function added
+        case '{':
+            return BlockParser(CurBlock); 
         default: {
             PushError(Identifier, "statement not identified", 1); 
             return nullptr;
@@ -296,6 +337,8 @@ std::unique_ptr<DeclarationAST> \
             return ExpressionParser(CurBlock);
         case '(':
             return ExpressionParser(CurBlock);
+        case '{':
+            return StatementParser(CurBlock);
         default:
             return StatementParser(CurBlock);
     }
@@ -306,9 +349,10 @@ std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<std::fstream> FileInput,
                                        std::shared_ptr<BlockAST> Global) 
 {
     // Set file as global
-    FileParser = FileInput;    
-    getNextToken(); // Get the first token
-    
+    FileParser = FileInput; 
+    if (CurToken == 0 || CurToken == ';'){
+        getNextToken(); // Get the first token
+    }
 
     if (CurToken == TOKEN_EOF) {
         return nullptr;

@@ -157,6 +157,19 @@ void VarDeclAST::codegen() {
     return;
 }
 
+void InsideAST::codegen() {
+    if (!Chain) {
+        if (!Exec) {
+            return;
+        }
+        Exec->codegen();
+        return;
+    }
+    Exec->codegen();
+    Chain->codegen();
+    return;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 ////////////                    FRONT COMPILER                     ////////////
 ///////////////////////////////////////////////////////////////////////////////
