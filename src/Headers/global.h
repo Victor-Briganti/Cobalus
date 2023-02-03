@@ -14,6 +14,8 @@
 // Define "union"
 #define Value std::variant<double, bool, std::string, int*>
 
+extern std::fstream FileInput;
+
 // Definition for DEBUGs
 //#define DEBUG
 //#define STACK

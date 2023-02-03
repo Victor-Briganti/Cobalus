@@ -256,9 +256,9 @@ void CodeExec() {
     #endif
 }
 
-void InitVM(std::shared_ptr<std::fstream> FileInput) {
+void InitVM() {
     // Generate the code and fill the stack
-    Compile(FileInput);
+    Compile();
     
     CodeExec();
 }

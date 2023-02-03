@@ -151,6 +151,5 @@ class InsideAST : public StatementAST {
 /////////                           FUNCTIONS                         /////////
 ///////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<std::fstream> FileInput,
-                                       std::shared_ptr<BlockAST> GlobalAST);
+std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<BlockAST> GlobalAST);
 

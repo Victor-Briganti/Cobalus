@@ -169,15 +169,15 @@ void InsideAST::codegen() {
 ////////////                    FRONT COMPILER                     ////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-void Compile(std::shared_ptr<std::fstream> FileComp) {
+void Compile() {
     // Generate the global block 
     std::shared_ptr<BlockAST> Global = 
         std::make_shared<BlockAST>(nullptr, GLOBAL);
 
-    std::unique_ptr<DeclarationAST> Decl = Parser(FileComp, Global);
+    std::unique_ptr<DeclarationAST> Decl = Parser(Global);
 
     while (Decl) {
         Decl->codegen();
-        Decl = Parser(FileComp, Global);
+        Decl = Parser(Global);
     }
 }

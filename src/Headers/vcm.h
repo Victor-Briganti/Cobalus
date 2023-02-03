@@ -47,8 +47,7 @@ void InsertVal(Value, int);
 Bytecode RetStack(int);
 
 // VM Operation
-void InitVM(std::shared_ptr<std::fstream> FileInput);
+void InitVM();
 
-// Compiler operation(compiler.cpp)
 // Declaration for codegeneration
-void Compile(std::shared_ptr<std::fstream> FileComp);
+void Compile();

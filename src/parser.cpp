@@ -5,13 +5,11 @@
 // +++++++++++++++++++++++
 // +-----+ GLOBALS +-----+
 // +++++++++++++++++++++++
-// File to be parser.
-std::shared_ptr<std::fstream> FileParser;
 
 // Buffer for tokens and function to get then 
 int CurToken;
 void getNextToken() {
-    CurToken = Tokenizer(FileParser);
+    CurToken = Tokenizer();
 }
 
 // Returns the precedence of operations.
@@ -344,11 +342,8 @@ std::unique_ptr<DeclarationAST> \
 }
 
 // program -> declaration
-std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<std::fstream> FileInput,
-                                       std::shared_ptr<BlockAST> Global) 
+std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<BlockAST> Global) 
 {
-    // Set file as global
-    FileParser = FileInput; 
     if (CurToken == 0 || CurToken == ';'){
         getNextToken(); // Get the first token
     }

@@ -1,7 +1,7 @@
 #include "global.h"
 
 // First stage of the parser TOKENS!!!
-int Tokenizer(std::shared_ptr<std::fstream> FileInput);
+int Tokenizer();
 
 // Buffers.
 // Used to save the current value of a constant
