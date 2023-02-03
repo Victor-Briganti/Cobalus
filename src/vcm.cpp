@@ -26,7 +26,7 @@ int SizeStack() {
 void InsertVal (Value data, int offset) {
     Bytecode byte = CobaluStack[offset];
     byte.data = data;
-    CobaluStack[offset] = byte;
+    CobaluStack[byte.offset] = byte;
     return;
 }
 
