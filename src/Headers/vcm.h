@@ -39,11 +39,27 @@ struct Bytecode {
     int offset;
 };
 
-// Stack Operations
-void PushStack(Bytecode);
-int SizeStack();
-void InsertVal(Value, int);
-Bytecode RetStack(int);
+class InstructionStack {
+    std::vector<Bytecode> Stack;
+    int sp; // stack pointer
+
+    public:
+        InstructionStack() {}
+
+        // Stack Operations
+        void Push(Bytecode);
+        int Size();
+        void Insert(Value, int);
+        Bytecode Return(int);
+        void Advance();
+        int SP();
+        //void Goto();
+        #ifdef STACK 
+        void StackReset();
+        #endif
+};
+
+extern InstructionStack CobaluStack;
 
 // VM Operation
 void InitVM();

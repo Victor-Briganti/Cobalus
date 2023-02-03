@@ -694,7 +694,7 @@ void Calculus::stvarData(int offset) {
     }
     #endif
 
-    InsertVal(var, offset);
+    CobaluStack.Insert(var, offset);
 
     return;
 }
@@ -702,12 +702,12 @@ void Calculus::stvarData(int offset) {
 // Return the value of the variable
 void Calculus::retvarData(int offset) {
     #ifdef DEBUG
-    Bytecode var = RetStack(offset);
+    Bytecode var = CobaluStack.Return(offset);
     printf("[offset]: %d\n", offset);
     printf("[getto]: ");
-    var = RetStack(var.offset);
+    var = CobaluStack.Return(var.offset);
     printf("%d\n", var.offset);
-    printf("[stackval]:\n");
+    printf("[stackval]:");
     switch(var.data.index()) {
         case doub: {
             printf("%g\n", std::get<double>(var.data));
@@ -736,7 +736,7 @@ void Calculus::retvarData(int offset) {
     }
     #endif
 
-    Bytecode byte = RetStack(offset);
-    byte = RetStack(byte.offset);
+    Bytecode byte = CobaluStack.Return(offset);
+    byte = CobaluStack.Return(byte.offset);
     Calc.push_back(byte.data);
 }

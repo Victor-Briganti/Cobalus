@@ -52,7 +52,7 @@ void DoubleAST::codegen() {
     Bytecode byte;
     byte.inst = ndoubl;
     byte.data = DoubleValue;
-    PushStack(byte);
+    CobaluStack.Push(byte);
     return;
 }
 
@@ -60,7 +60,7 @@ void StringAST::codegen() {
     Bytecode byte;
     byte.inst = cstr;
     byte.data = StringValue;
-    PushStack(byte);
+    CobaluStack.Push(byte);
     return;
 }
 
@@ -68,7 +68,7 @@ void BoolAST::codegen() {
     Bytecode byte;
     byte.inst = bolen;
     byte.data = BoolValue;
-    PushStack(byte);
+    CobaluStack.Push(byte);
     return;
 }
 
@@ -76,7 +76,7 @@ void NullAST::codegen() {
     Bytecode byte;
     byte.inst = none;
     byte.data = nullptr;
-    PushStack(byte);
+    CobaluStack.Push(byte);
     return;
 }
 
@@ -86,7 +86,7 @@ void OperationAST::codegen() {
     
     Bytecode byte;
     byte.inst = getInstruction(Op);
-    PushStack(byte);
+    CobaluStack.Push(byte);
     return;
 }
 
@@ -100,7 +100,7 @@ void UnaryAST::codegen() {
     if (Op == TOKEN_NOT) {
         byte.inst = negte;
     }
-    PushStack(byte);
+    CobaluStack.Push(byte);
     return;
 }
 
@@ -109,7 +109,7 @@ void PrintAST::codegen() {
 
     Bytecode byte;
     byte.inst = stio;
-    PushStack(byte);
+    CobaluStack.Push(byte);
     return;
 }
 
@@ -122,10 +122,10 @@ void VarValAST::codegen() {
         Bytecode byte;
         byte.inst = none;
         byte.data = nullptr;
-        PushStack(byte);
+        CobaluStack.Push(byte);
         return;
     }
-    PushStack(byte);
+    CobaluStack.Push(byte);
     return;
 }
 
@@ -137,18 +137,18 @@ void VarDeclAST::codegen() {
         Bytecode byte;
         byte.inst = none;
         byte.data = nullptr;
-        PushStack(byte);
+        CobaluStack.Push(byte);
     } else {
         Expr->codegen();
     }
 
     if (Decl == 1) {
         byte.offset = ParentBlock->setOffset(Variable);
-        PushStack(byte);
+        CobaluStack.Push(byte);
         return;
     }
     byte.offset = ParentBlock->getOffset(Variable);
-    PushStack(byte);
+    CobaluStack.Push(byte);
     return;
 }
 

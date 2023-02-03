@@ -6,8 +6,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 int BlockAST::setOffset(std::string Variable) {
-    OffsetMap[Variable] = SizeStack();
-    return SizeStack();
+    OffsetMap[Variable] = CobaluStack.Size();
+    return CobaluStack.Size();
 }
 
 int BlockAST::getOffset(std::string Variable) {

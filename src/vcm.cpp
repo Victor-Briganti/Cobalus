@@ -1,7 +1,6 @@
 #include "Headers/error_log.h"
 #include "Headers/exec.h"
 #include "Headers/vcm.h" 
-#include <unordered_map>
 
 // +++++++++++++++++
 // ++++ GLOBALS ++++
@@ -9,6 +8,9 @@
 
 // Stack that stores variables and constants for execution
 Calculus ExecStack;
+
+// Stack of instructions
+InstructionStack CobaluStack;
 
 // Map of Instructions to String
 std::unordered_map<Instruction, std::string> inst_to_str = { 
@@ -49,31 +51,51 @@ std::unordered_map<Instruction, calc_method> inst_to_func = {
     {stio, &Calculus::printData},
 };
 
-// Stack and pointer of instructions
-std::vector<Bytecode> CobaluStack; // Stack of instructions 
+///////////////////////////////////////////////////////////////////////////////
+////////////                COBALUSTACK METHODS                    ////////////
+///////////////////////////////////////////////////////////////////////////////
 
-// Function for stack of instructions
-void PushStack(Bytecode byte) {
-    CobaluStack.push_back(byte);
-    if (CobaluStack.size() == 0) {
-        return;
-    }
+void InstructionStack::Push(Bytecode byte) {
+    Stack.push_back(byte);
 }
 
-int SizeStack() {
-    return CobaluStack.size();
+int InstructionStack::Size() {
+    return Stack.size();
 }
 
-void InsertVal (Value data, int offset) {
-    Bytecode byte = CobaluStack[offset];
+void InstructionStack::Insert(Value data, int offset) {
+    Bytecode byte = Stack[offset];
     byte.data = data;
-    CobaluStack[byte.offset] = byte;
+    Stack[byte.offset] = byte;
     return;
 }
 
-Bytecode RetStack (int offset) {
-    return CobaluStack[offset];
+Bytecode InstructionStack::Return(int offset=-1) {
+    if (offset == -1) {
+        return Stack[sp];
+    }
+    return Stack[offset];
 }
+
+void InstructionStack::Advance() {
+    sp++;
+    if (sp > Stack.size()) {
+        ErLogs.PushError("", "Stack overflow.", 2);
+        ErLogs.ShowErrors();
+        exit(1);
+    }
+}
+
+int InstructionStack::SP() {
+    return sp;
+}
+
+#ifdef STACK 
+void InstructionStack::StackReset() {
+    sp = 0;
+}
+#endif
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ////////////                    VM EXECUTION                       ////////////
@@ -86,7 +108,7 @@ void Interpreter(Bytecode byte, int offset) {
         case cstr:
         case none: {
             #ifdef DEBUG 
-                printf("[%s]:\n", inst_to_str[byte.inst].c_str());
+                printf("[%s]:", inst_to_str[byte.inst].c_str());
             #endif
 
             ExecStack.PushCalc(byte.data);
@@ -106,7 +128,7 @@ void Interpreter(Bytecode byte, int offset) {
         case invsig:
         case stio: {
             #ifdef DEBUG 
-                printf("[%s]:\n", inst_to_str[byte.inst].c_str());
+                printf("[%s]:", inst_to_str[byte.inst].c_str());
             #endif
 
             // Cool Hack to call methods that don't need args
@@ -116,7 +138,7 @@ void Interpreter(Bytecode byte, int offset) {
         } 
         case varst: {
             #ifdef DEBUG
-                printf("[varst]:\n");
+                printf("[varst]\n");
             #endif
          
            ExecStack.stvarData(offset);
@@ -124,16 +146,14 @@ void Interpreter(Bytecode byte, int offset) {
         }
         case varrt: {
             #ifdef DEBUG 
-                printf("[varrt]:\n");
+                printf("[varrt]\n");
             #endif
 
             ExecStack.retvarData(offset);
             break;
         }
         default: {
-            std::string Error = "Instruction was not reconized";
-            std::string Id = ".";
-            ErLogs.PushError(Id, Error, 2);
+            ErLogs.PushError("", "Instuction was not reconized", 2);
             break; // the show must go on
         }
     }
@@ -141,8 +161,13 @@ void Interpreter(Bytecode byte, int offset) {
 
 void CodeExec() {
     // Execute instruction line by line
-    for (int i = 0; i < CobaluStack.size(); i++) {
-        Interpreter(CobaluStack[i], i);
+    while (true) {
+        if (CobaluStack.SP() < CobaluStack.Size()) {
+            Interpreter(CobaluStack.Return(), CobaluStack.SP());
+            CobaluStack.Advance();
+        } else {
+            break;
+        }
     }
     
     // If there is any error show all of them
@@ -152,14 +177,15 @@ void CodeExec() {
     }
    
     #ifdef STACK
-    std::cout << std::left << std::setw(30) << "================ COBALUS STACK ================" << std::endl;
-    std::cout << std::left << std::setw(6) << "x" << "|";
-    std::cout << std::left << std::setw(20) << "data";
-    std::cout << std::left << std::setw(15) << "instruction";
-    std::cout << std::left << std::setw(10) << "offset" << std::endl;
-    for (int i=0; i< CobaluStack.size(); i++) {
-        Bytecode byte = CobaluStack[i];
-    std::cout << std::left << std::setw(6) << i << "|";
+        std::cout << std::left << std::setw(30) << "================ COBALUS STACK ================" << std::endl;
+        std::cout << std::left << std::setw(6) << "x" << "|";
+        std::cout << std::left << std::setw(20) << "data";
+        std::cout << std::left << std::setw(15) << "instruction";
+        std::cout << std::left << std::setw(10) << "offset" << std::endl;
+        CobaluStack.StackReset();
+        while (CobaluStack.SP() < CobaluStack.Size()) {
+            Bytecode byte = CobaluStack.Return();
+            std::cout << std::left << std::setw(6) << CobaluStack.SP() << "|";
             switch(byte.data.index()) {
             case doub: {
                 std::cout << std::left << std::setw(20) << 
@@ -184,12 +210,13 @@ void CodeExec() {
                     std::cout << std::left << std::setw(20) << "[ERROR]";
                     break;
                 }
+            }
+            std::cout << std::left << std::setw(15) << inst_to_str[byte.inst];
+            std::cout << std::left << std::setw(10) << byte.offset << std::endl;
+            CobaluStack.Advance();
         }
-        std::cout << std::left << std::setw(15) << inst_to_str[byte.inst];
-        std::cout << std::left << std::setw(10) << byte.offset << std::endl;
-    }
-    std::cout << std::left << std::setw(30) << "================ END OF STACK =================" << std::endl;
-    #endif
+        std::cout << std::left << std::setw(30) << "================ END OF STACK =================" << std::endl;
+        #endif
 }
 
 void InitVM() {

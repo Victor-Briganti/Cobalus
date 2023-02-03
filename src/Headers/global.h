@@ -17,5 +17,5 @@ typedef std::variant<double, bool, std::string, int*> Value ;
 extern std::fstream FileInput;
 
 // Definition for DEBUGs
-//#define DEBUG
-//#define STACK
+#define DEBUG
+#define STACK
