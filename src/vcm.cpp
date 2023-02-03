@@ -26,7 +26,12 @@ int SizeStack() {
 void InsertVal (Value data, int offset) {
     Bytecode byte = CobaluStack[offset];
     byte.data = data;
+    CobaluStack[offset] = byte;
     return;
+}
+
+Bytecode RetStack (int offset) {
+    return CobaluStack[offset];
 }
 
 // Stack that stores variables and constants for execution
@@ -183,6 +188,14 @@ void Interpreter(Bytecode byte, int offset) {
            ExecStack.stvarData(offset);
            break;
         }
+        case varrt: {
+            #ifdef DEBUG 
+                printf("[varrt]:\n");
+            #endif
+
+            ExecStack.retvarData(offset);
+            break;
+        }
         default: {
             std::string Error = "Instruction was not reconized";
             std::string Id = ".";
@@ -198,13 +211,51 @@ void CodeExec() {
         Interpreter(CobaluStack[i], i);
     }
     
-    printf("%d\n", CobaluStack.size());
-
     // If there is any error show all of them
     if (NumErrors()) {
        ShowErrors();
        return;
     }
+   
+    #ifdef STACK
+    std::cout << std::left << std::setw(30) << "================ COBALUS STACK ================" << std::endl;
+    std::cout << std::left << std::setw(6) << "x" << "|";
+    std::cout << std::left << std::setw(20) << "data";
+    std::cout << std::left << std::setw(15) << "instruction";
+    std::cout << std::left << std::setw(10) << "offset" << std::endl;
+    for (int i=0; i< CobaluStack.size(); i++) {
+        Bytecode byte = CobaluStack[i];
+    std::cout << std::left << std::setw(6) << i << "|";
+            switch(byte.data.index()) {
+            case doub: {
+                std::cout << std::left << std::setw(20) << 
+                    std::get<double>(byte.data);
+                break;
+            }
+            case str: {
+                std::cout << std::left << std::setw(20) << 
+                    std::get<std::string>(byte.data);
+                break;
+            }
+            case boo: {
+                std::cout << std::left << std::setw(20) << 
+                    std::get<bool>(byte.data);
+                break;
+            }
+            case nil: {
+                std::cout << std::left << std::setw(20) << "null";
+                break;
+            }
+            default: {
+                    std::cout << std::left << std::setw(20) << "[ERROR]";
+                    break;
+                }
+        }
+        std::cout << std::left << std::setw(15) << byte.inst;
+        std::cout << std::left << std::setw(10) << byte.offset << std::endl;
+    }
+    std::cout << std::left << std::setw(30) << "================ END OF STACK =================" << std::endl;
+    #endif
 }
 
 void InitVM(std::shared_ptr<std::fstream> FileInput) {

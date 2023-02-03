@@ -302,14 +302,13 @@ std::unique_ptr<DeclarationAST> \
 }
 
 // program -> declaration
-std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<std::fstream> FileInput) 
+std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<std::fstream> FileInput,
+                                       std::shared_ptr<BlockAST> Global) 
 {
     // Set file as global
     FileParser = FileInput;    
     getNextToken(); // Get the first token
     
-    std::shared_ptr<BlockAST> Global = 
-        std::make_shared<BlockAST>(nullptr, GLOBAL);
 
     if (CurToken == TOKEN_EOF) {
         return nullptr;

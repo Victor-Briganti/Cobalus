@@ -655,6 +655,7 @@ void Calculus::stvarData(int offset) {
     Calc.pop_back();
 
     #ifdef DEBUG
+    printf("[offset]: %d\n", offset);
     printf("[stackval]: ");
     switch(var.index()) {
         case doub: {
@@ -682,10 +683,50 @@ void Calculus::stvarData(int offset) {
             break;
         }
     }
-    printf("[offset]: %d\n", offset);
     #endif
 
     InsertVal(var, offset);
 
     return;
+}
+
+void Calculus::retvarData(int offset) {
+    #ifdef DEBUG
+    Bytecode var = RetStack(offset);
+    printf("[offset]: %d\n", offset);
+    printf("[getto]: ");
+    var = RetStack(var.offset);
+    printf("%d\n", var.offset);
+    printf("[stackval]:\n");
+    switch(var.data.index()) {
+        case doub: {
+            printf("%g\n", std::get<double>(var.data));
+            break;
+        }
+        case boo: {
+            if(std::get<bool>(var.data)) {
+                printf("true\n");
+            } else {
+                printf("false\n");
+            }
+            break;
+        }
+        case str: {
+            printf("'%s'\n", std::get<std::string>(var.data).c_str());
+            break;
+        }
+        case nil: {
+            printf("null\n");
+            break;
+        }
+        default: {
+            printf("error\n");
+            break;
+        }
+    }
+    #endif
+
+    Bytecode byte = RetStack(offset);
+    byte = RetStack(byte.offset);
+    Calc.push_back(byte.data);
 }

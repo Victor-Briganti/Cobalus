@@ -119,6 +119,18 @@ void PrintAST::codegen() {
 }
 
 void VarValAST::codegen() {
+    Bytecode byte;
+    byte.inst = varrt;
+    byte.offset = ParentBlock->getOffset(Variable);
+    if (byte.offset == -1) {
+        PushError(Variable, "not identified", 2);        
+        Bytecode byte;
+        byte.inst = none;
+        byte.data = nullptr;
+        PushStack(byte);
+        return;
+    }
+    PushStack(byte);
     return;
 }
 
@@ -150,10 +162,14 @@ void VarDeclAST::codegen() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Compile(std::shared_ptr<std::fstream> FileComp) {
-    std::unique_ptr<DeclarationAST> Decl = Parser(FileComp);
+    // Generate the global block 
+    std::shared_ptr<BlockAST> Global = 
+        std::make_shared<BlockAST>(nullptr, GLOBAL);
+
+    std::unique_ptr<DeclarationAST> Decl = Parser(FileComp, Global);
 
     while (Decl) {
         Decl->codegen();
-        Decl = Parser(FileComp);
+        Decl = Parser(FileComp, Global);
     }
 }

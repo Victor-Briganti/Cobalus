@@ -116,7 +116,8 @@ class VarDeclAST : public StatementAST {
         VarDeclAST(std::string Variable, int Decl, 
                    std::unique_ptr<DeclarationAST> Expr, 
                    std::shared_ptr<BlockAST> ParentBlock) 
-            : Expr(std::move(Expr)), ParentBlock(ParentBlock) {}
+            : Expr(std::move(Expr)), ParentBlock(ParentBlock),
+              Variable(Variable), Decl(Decl) {}
     
         void codegen() override;
 };
@@ -137,5 +138,6 @@ class VarValAST : public StatementAST {
 /////////                           FUNCTIONS                         /////////
 ///////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<std::fstream> FileInput);
+std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<std::fstream> FileInput,
+                                       std::shared_ptr<BlockAST> GlobalAST);
 

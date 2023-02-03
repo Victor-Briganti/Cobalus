@@ -44,6 +44,7 @@ struct Bytecode {
 void PushStack(Bytecode);
 int SizeStack();
 void InsertVal(Value, int);
+Bytecode RetStack(int);
 
 // VM Operation
 void InitVM(std::shared_ptr<std::fstream> FileInput);

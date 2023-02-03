@@ -4,6 +4,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <memory>
 #include <stack>
 #include <string> 
@@ -14,5 +15,6 @@
 // Define "union"
 #define Value std::variant<double, bool, std::string, int*>
 
-// Definition for DEBUG on exec.cpp
-#define DEBUG
+// Definition for DEBUGs
+//#define DEBUG
+#define STACK

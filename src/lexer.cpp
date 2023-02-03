@@ -32,14 +32,16 @@ Token checkId(int lenght, char Comp[], Token type,
     char Peek[lenght];
     for (int i=0; i <= lenght; i++) {
         FileInput->get(Buffer);
+        if (!isalpha(Buffer)) {
+            break;
+        }
         Peek[i] = Buffer;
+        Identifier += Buffer;
     }
 
     if(memcmp(Comp, Peek, lenght) == 0) {
         return type;
     }
-    
-    Identifier += Peek;
 
     // If fails saves the identifier
     while (isalnum(Buffer) || Buffer ==  '_') {

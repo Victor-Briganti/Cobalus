@@ -38,6 +38,7 @@ class Calculus {
         
         // Variable
         void stvarData(int offset);
+        void retvarData(int offset);
 
         // Built-in
         void PrintTop(); // print
