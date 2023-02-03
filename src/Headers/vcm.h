@@ -1,6 +1,5 @@
 #include "global.h"
 
-// Instructions
 enum Instruction {
     // Types
     ndoubl, // double
@@ -8,10 +7,6 @@ enum Instruction {
     bolen, // bool
     none, // null
     
-    // Variables
-    varst, // store
-    varrt, // return
-
     // Binary:
     // arithmetic
     addD, // D = data
@@ -32,6 +27,10 @@ enum Instruction {
 
     // Built-in Function
     stio, // print
+    
+    // Variables
+    varst, // store
+    varrt, // return
 };
 
 struct Bytecode {

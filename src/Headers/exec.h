@@ -41,6 +41,6 @@ class Calculus {
         void retvarData(int offset);
 
         // Built-in
-        void PrintTop(); // print
+        void printData(); // print
 };
     

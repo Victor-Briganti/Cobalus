@@ -12,7 +12,7 @@
 #include <vector>
 
 // Define "union"
-#define Value std::variant<double, bool, std::string, int*>
+typedef std::variant<double, bool, std::string, int*> Value ;
 
 extern std::fstream FileInput;
 

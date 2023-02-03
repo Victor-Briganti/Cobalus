@@ -622,7 +622,7 @@ void Calculus::lseqData() {
 }
 
 // Built-in Print
-void Calculus::PrintTop() {
+void Calculus::printData() {
     if (EmptyStack()) {
         return;
     }
