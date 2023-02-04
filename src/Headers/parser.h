@@ -147,6 +147,24 @@ class InsideAST : public StatementAST {
         void codegen() override;
 };
 
+class IfAST : public StatementAST {
+    std::unique_ptr<DeclarationAST> Cond;
+    std::unique_ptr<DeclarationAST> IfBlock;
+    std::unique_ptr<DeclarationAST> ElseBlock;
+    std::shared_ptr<BlockAST> ParentBlock;
+
+public:
+        IfAST (std::unique_ptr<DeclarationAST> Cond,
+               std::unique_ptr<DeclarationAST> IfBlock,
+               std::unique_ptr<DeclarationAST> ElseBlock,
+               std::shared_ptr<BlockAST> ParentBlock) 
+        : Cond(std::move(Cond)), IfBlock(std::move(IfBlock)),
+        ElseBlock(std::move(ElseBlock)), ParentBlock(ParentBlock) {}
+
+        void codegen() override;
+
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /////////                           FUNCTIONS                         /////////
 ///////////////////////////////////////////////////////////////////////////////

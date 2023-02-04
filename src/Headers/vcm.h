@@ -31,6 +31,9 @@ enum Instruction {
     // Variables
     varst, // store
     varrt, // return
+
+    // Goto
+    setto,
 };
 
 struct Bytecode {
@@ -49,11 +52,12 @@ class InstructionStack {
         // Stack Operations
         void Push(Bytecode);
         int Size();
-        void Insert(Value, int);
+        void ChangeValue(Value, int);
+        void Insert(Bytecode, int);
         Bytecode Return(int);
         void Advance();
         int SP();
-        //void Goto();
+        void Goto(int);
         #ifdef STACK 
         void StackReset();
         #endif

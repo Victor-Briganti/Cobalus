@@ -165,6 +165,55 @@ void InsideAST::codegen() {
     return;
 }
 
+void IfAST::codegen() {
+    // Generates the code of the condition
+    Cond->codegen();
+
+    Bytecode byte;
+    byte.inst = setto; // goto equivalent
+    CobaluStack.Push(byte);
+
+    // Saves the current place of the instruction on the stack
+    int tmp = CobaluStack.Size() - 1;
+
+    // Generates the if block
+    IfBlock->codegen();
+
+    // Gets position of the stack where it needs to go if the condition fails
+    byte.offset = CobaluStack.Size() - 1; 
+
+    // Reinsert the value into the stack
+    CobaluStack.Insert(byte, tmp);
+
+    if (!ElseBlock) {
+        return;
+    }
+    
+    // Not very proud of this hack, but for now will do
+    // Generates a always false
+    Bytecode booltrue;
+    booltrue.inst = bolen;
+    booltrue.data = false;
+    CobaluStack.Push(booltrue);
+
+    // Saves the current place of the instruction on the stack
+    // this place will be used so we can jump off else in the case
+    // the condition is true.
+    CobaluStack.Push(byte);
+    tmp = CobaluStack.Size() - 1;
+
+    // Generates the else block
+    ElseBlock->codegen();
+
+    // Gets position of the stack where it needs to go if condition 
+    // succed
+    byte.offset = CobaluStack.Size() - 1; 
+    // Reinsert the value into the stack
+    CobaluStack.Insert(byte, tmp);
+
+    return;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 ////////////                    FRONT COMPILER                     ////////////
 ///////////////////////////////////////////////////////////////////////////////

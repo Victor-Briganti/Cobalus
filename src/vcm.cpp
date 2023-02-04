@@ -31,6 +31,7 @@ std::unordered_map<Instruction, std::string> inst_to_str = {
     {negte, "negte"},
     {invsig, "invsig"},
     {stio, "stio"},
+    {setto, "setto"},
 };
 
 // Map of Instructions to Methods
@@ -49,6 +50,7 @@ std::unordered_map<Instruction, calc_method> inst_to_func = {
     {negte, &Calculus::negData},
     {invsig, &Calculus::invsigData},
     {stio, &Calculus::printData},
+    {setto, &Calculus::evalCondition},
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,14 +65,19 @@ int InstructionStack::Size() {
     return Stack.size();
 }
 
-void InstructionStack::Insert(Value data, int offset) {
+void InstructionStack::ChangeValue(Value data, int offset) {
     Bytecode byte = Stack[offset];
     byte.data = data;
     Stack[byte.offset] = byte;
     return;
 }
 
-Bytecode InstructionStack::Return(int offset=-1) {
+void InstructionStack::Insert(Bytecode byte, int offset) {
+    Stack[offset] = byte;
+    return;
+}
+
+Bytecode InstructionStack::Return(int offset = -1) {
     if (offset == -1) {
         return Stack[sp];
     }
@@ -88,6 +95,10 @@ void InstructionStack::Advance() {
 
 int InstructionStack::SP() {
     return sp;
+}
+
+void InstructionStack::Goto(int offset) {
+    sp = offset;
 }
 
 #ifdef STACK 
@@ -126,7 +137,8 @@ void Interpreter(Bytecode byte, int offset) {
         case lseqD:
         case negte:
         case invsig:
-        case stio: {
+        case stio:
+        case setto: {
             #ifdef DEBUG 
                 printf("[%s]:", inst_to_str[byte.inst].c_str());
             #endif
@@ -170,6 +182,7 @@ void CodeExec() {
         }
     }
     
+
     // If there is any error show all of them
     if (ErLogs.NumErrors()) {
        ErLogs.ShowErrors();

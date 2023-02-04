@@ -42,5 +42,8 @@ class Calculus {
 
         // Built-in
         void printData(); // print
+
+        // Condition
+        void evalCondition();
 };
     

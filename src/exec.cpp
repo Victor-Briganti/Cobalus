@@ -694,7 +694,7 @@ void Calculus::stvarData(int offset) {
     }
     #endif
 
-    CobaluStack.Insert(var, offset);
+    CobaluStack.ChangeValue(var, offset);
 
     return;
 }
@@ -739,4 +739,43 @@ void Calculus::retvarData(int offset) {
     Bytecode byte = CobaluStack.Return(offset);
     byte = CobaluStack.Return(byte.offset);
     Calc.push_back(byte.data);
+}
+
+// Evaluate condition and jumps on the stack accordingly
+void Calculus::evalCondition() {
+    if (EmptyStack()) {
+        return;
+    }
+
+    Value cond = Calc.back();
+    Calc.pop_back();
+
+    if (cond.index() == str) {
+        ErLogs.PushError(std::get<std::string>(cond), 
+            "string type is not supported in conditions", 2);
+        return;
+    }
+
+    Bytecode byte = CobaluStack.Return(-1);
+
+    switch (cond.index()) {
+        case doub: {
+            if(!std::get<double>(cond)) {
+                CobaluStack.Goto(byte.offset);
+                return;
+            }
+            return;
+        }
+        case boo: {
+            if(!std::get<bool>(cond)) {
+                CobaluStack.Goto(byte.offset);
+                return;
+            }
+            return;
+        }
+        default: {
+            return;
+        }
+    }
+    return;
 }

@@ -294,9 +294,42 @@ std::unique_ptr<DeclarationAST> BlockParser(std::shared_ptr<BlockAST> CurBlock)
     return Inside;
 }
 
+// ifstmt -> if parenexpr statement '(' else statement ')'?
+std::unique_ptr<DeclarationAST> IfParser(std::shared_ptr<BlockAST> CurBlock) {
+    getNextToken(); // consume if
+
+    auto Cond = ParenParser(CurBlock);
+    if (!Cond) {
+        ErLogs.PushError("", "expected a expression after if", 1);
+    }
+
+    auto IfBlock = StatementParser(CurBlock);
+    if (!IfBlock) {
+        return nullptr;
+    }
+
+    if (CurToken == ';') {
+        getNextToken(); // consume ';'
+    }
+
+    if (CurToken == TOKEN_ELSE) {
+        getNextToken(); // consume else
+        auto ElseBlock = StatementParser(CurBlock);
+        if (!ElseBlock) {
+            return nullptr;
+        }
+        return std::make_unique<IfAST>(std::move(Cond), std::move(IfBlock),
+            std::move(ElseBlock), CurBlock);
+    }
+
+    return std::make_unique<IfAST>(std::move(Cond), std::move(IfBlock), nullptr,
+        CurBlock);
+}
+
 // statement -> printstmt
 //           |  vardecl
 //           |  block
+//           |  ifstmt
 std::unique_ptr<DeclarationAST> \
     StatementParser(std::shared_ptr<BlockAST> CurBlock) 
 {
@@ -308,7 +341,9 @@ std::unique_ptr<DeclarationAST> \
         case TOKEN_ID:
             return VarAssignParser(CurBlock); // Change this when function added
         case '{':
-            return BlockParser(CurBlock); 
+            return BlockParser(CurBlock);
+        case TOKEN_IF:
+            return IfParser(CurBlock); 
         default: {
             ErLogs.PushError(Identifier, "statement not identified", 1); 
             return nullptr;
