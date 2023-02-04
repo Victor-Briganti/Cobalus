@@ -1,4 +1,5 @@
-if (true) {
+var test = 0;
+if (test) {
     if(false) {
         print(0);
     }

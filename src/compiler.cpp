@@ -179,14 +179,21 @@ void IfAST::codegen() {
     // Generates the if block
     IfBlock->codegen();
 
-    // Gets position of the stack where it needs to go if the condition fails
-    byte.offset = CobaluStack.Size() - 1; 
-
-    // Reinsert the value into the stack
-    CobaluStack.Insert(byte, tmp);
 
     if (!ElseBlock) {
+        // Gets position of the stack where it needs to go if the condition fails
+        byte.offset = CobaluStack.Size() - 1; 
+
+        // Reinsert the value into the stack
+        CobaluStack.Insert(byte, tmp);
         return;
+    } else {
+        // Gets position of the stack where it needs to go if the condition fails
+        // it needs to go 2 more because of the none of the block and the setto 
+        byte.offset = CobaluStack.Size() + 1;  
+
+        // Reinsert the value into the stack
+        CobaluStack.Insert(byte, tmp);
     }
     
     // Not very proud of this hack, but for now will do
