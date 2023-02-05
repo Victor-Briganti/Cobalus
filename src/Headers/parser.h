@@ -7,6 +7,7 @@
 enum BlockState {
     GLOBAL,
     FUNC,
+    LOOP,
     COMMON,
 };
 
@@ -151,18 +152,34 @@ class IfAST : public StatementAST {
     std::unique_ptr<DeclarationAST> Cond;
     std::unique_ptr<DeclarationAST> IfBlock;
     std::unique_ptr<DeclarationAST> ElseBlock;
-    std::shared_ptr<BlockAST> ParentBlock;
 
-public:
+    public:
         IfAST (std::unique_ptr<DeclarationAST> Cond,
                std::unique_ptr<DeclarationAST> IfBlock,
-               std::unique_ptr<DeclarationAST> ElseBlock,
-               std::shared_ptr<BlockAST> ParentBlock) 
+               std::unique_ptr<DeclarationAST> ElseBlock) 
         : Cond(std::move(Cond)), IfBlock(std::move(IfBlock)),
-        ElseBlock(std::move(ElseBlock)), ParentBlock(ParentBlock) {}
+        ElseBlock(std::move(ElseBlock)) {}
 
         void codegen() override;
+};
 
+class WhileAST : public StatementAST {
+    std::unique_ptr<DeclarationAST> Cond;
+    std::unique_ptr<DeclarationAST> Loop;
+
+    public:
+        WhileAST(std::unique_ptr<DeclarationAST> Cond,
+                std::unique_ptr<DeclarationAST> Loop)
+        : Cond(std::move(Cond)), Loop(std::move(Loop)) {} 
+
+        void codegen() override;
+};
+
+class BreakAST : public StatementAST {
+    public:
+        BreakAST() {}
+
+        void codegen() override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -170,4 +187,3 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 
 std::unique_ptr<DeclarationAST> Parser(std::shared_ptr<BlockAST> GlobalAST);
-

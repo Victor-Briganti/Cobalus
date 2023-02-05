@@ -1,0 +1,9 @@
+var test = 1;
+if (test) {
+    test = test + 1;
+    if(test == 2) {
+        print(test);
+    }
+} else {
+    print(2);
+}

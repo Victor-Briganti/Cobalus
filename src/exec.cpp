@@ -501,7 +501,7 @@ void Calculus::lsData() {
     #endif
     
     if (Right.index() == doub && Left.index() == doub){
-        Right = (std::get<double>(Left) < std::get<double>(Right));
+        Right = std::get<double>(Left) < std::get<double>(Right);
         Calc.push_back(Right);
         return;
     }
@@ -761,19 +761,40 @@ void Calculus::evalCondition() {
     switch (cond.index()) {
         case doub: {
             if(!std::get<double>(cond)) {
+                #ifdef DEBUG 
+                    printf("%g/t", std::get<double>(cond));
+                    printf("%d\n", byte.offset);
+                #endif
                 CobaluStack.Goto(byte.offset);
+                #ifdef DEBUG 
+                    printf("%g/t", std::get<double>(cond));
+                    printf("%d\n", byte.offset);
+                #endif
                 return;
             }
             return;
         }
         case boo: {
             if(!std::get<bool>(cond)) {
+                #ifdef DEBUG 
+                    printf("%d/t", std::get<bool>(cond));
+                    printf("%d\n", byte.offset);
+                #endif
                 CobaluStack.Goto(byte.offset);
                 return;
             }
+            #ifdef DEBUG 
+                printf("%g/t", std::get<double>(cond));
+                printf("%d\n", byte.offset);
+            #endif
             return;
         }
         default: {
+            #ifdef DEBUG 
+                printf("null/t", std::get<double>(cond));
+                printf("%d\n", byte.offset);
+            #endif
+            CobaluStack.Goto(byte.offset);
             return;
         }
     }

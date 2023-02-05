@@ -105,8 +105,10 @@ void UnaryAST::codegen() {
 }
 
 void PrintAST::codegen() {
+    // Generates the data
     Expr->codegen();
 
+    // Creates the print instruction
     Bytecode byte;
     byte.inst = stio;
     CobaluStack.Push(byte);
@@ -114,9 +116,13 @@ void PrintAST::codegen() {
 }
 
 void VarValAST::codegen() {
+    // Generates the instruction to return the variable from the 
+    // CobaluStack
     Bytecode byte;
     byte.inst = varrt;
     byte.offset = ParentBlock->getOffset(Variable);
+    
+    // If not found push a null value
     if (byte.offset == -1) {
         ErLogs.PushError(Variable, "not identified", 2);        
         Bytecode byte;
@@ -125,14 +131,17 @@ void VarValAST::codegen() {
         CobaluStack.Push(byte);
         return;
     }
+    
     CobaluStack.Push(byte);
     return;
 }
 
 void VarDeclAST::codegen() {
+    // Generates the instruction to insert a variable in the stack
     Bytecode byte;
     byte.inst = varst;
    
+   // Verify if the variable is initialized, if not insert a null
     if (!Expr) {
         Bytecode byte;
         byte.inst = none;
@@ -142,11 +151,15 @@ void VarDeclAST::codegen() {
         Expr->codegen();
     }
 
+    // Verify if is a declaration or is a reassign of a value.
+    // If is a declaration insert its offset on the table
     if (Decl == 1) {
         byte.offset = ParentBlock->setOffset(Variable);
         CobaluStack.Push(byte);
         return;
     }
+
+    // Is a reassign so get the offset value
     byte.offset = ParentBlock->getOffset(Variable);
     CobaluStack.Push(byte);
     return;
@@ -198,10 +211,10 @@ void IfAST::codegen() {
     
     // Not very proud of this hack, but for now will do
     // Generates a always false
-    Bytecode booltrue;
-    booltrue.inst = bolen;
-    booltrue.data = false;
-    CobaluStack.Push(booltrue);
+    Bytecode alwfalse;
+    alwfalse.inst = bolen;
+    alwfalse.data = false;
+    CobaluStack.Push(alwfalse);
 
     // Saves the current place of the instruction on the stack
     // this place will be used so we can jump off else in the case
@@ -218,6 +231,48 @@ void IfAST::codegen() {
     // Reinsert the value into the stack
     CobaluStack.Insert(byte, tmp);
 
+    return;
+}
+
+void WhileAST::codegen() {
+    // Saves the current position of the stack, to return later
+    int start = CobaluStack.Size() - 1;
+
+    // Generates the code of the condition
+    Cond->codegen();
+
+    // Creates the setto to that points to the end of the loop
+    Bytecode endloop;
+    endloop.inst = setto;
+    CobaluStack.Push(endloop);
+
+    // Saves the position of the endloop
+    int endpos = CobaluStack.Size() - 1;
+
+    // Generates the loop code
+    Loop->codegen();
+
+    // Generates the byte code to return to the start of the loop
+    // Doesn't need to generate always false because block already does it
+    // Generates the setto
+    Bytecode startloop;
+    startloop.inst = setto;
+    startloop.offset = start;
+    CobaluStack.Push(startloop);
+
+    // Generates the null so the condition has where to go if fails
+    Bytecode endpoint;
+    endpoint.inst = none;
+    CobaluStack.Push(endpoint);
+
+    // Saves the current position of the stack so we can escape
+    // the loop
+    int end = CobaluStack.Size() - 1;
+    endloop.offset = end;
+    CobaluStack.Insert(endloop, endpos);
+}
+
+void BreakAST::codegen() {
     return;
 }
 

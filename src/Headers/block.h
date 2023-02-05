@@ -18,4 +18,6 @@ class BlockAST {
 
          int getOffset(std::string Variable);
          int setOffset(std::string Variable);
+         void ChangeState(int);
+         int ReturnState();
 };

@@ -89,7 +89,7 @@ std::unique_ptr<DeclarationAST> ParenParser(std::shared_ptr<BlockAST> CurBlock)
     }
 
     if (CurToken != ')') {
-       ErLogs.PushError(Identifier, "expected a '('", 1); 
+       ErLogs.PushError("", "expected a '('", 1); 
        return nullptr;
     }
     getNextToken(); // consume ')'
@@ -116,7 +116,7 @@ std::unique_ptr<DeclarationAST> PrimaryParser(std::shared_ptr<BlockAST> CurBlock
 {
     switch(CurToken) {
         default:{
-            ErLogs.PushError(Identifier, "expression not identified", 1); 
+            ErLogs.PushError("", "expression not identified", 1); 
             return nullptr;
         }
         case TOKEN_DOUBLE:
@@ -218,7 +218,7 @@ std::unique_ptr<DeclarationAST> PrintParser(std::shared_ptr<BlockAST> CurBlock)
     getNextToken(); // consume print
     
     if (CurToken != '(') {
-       ErLogs.PushError(Identifier, "expected a '('", 1); 
+       ErLogs.PushError("", "expected a '('", 1); 
        return nullptr;
     }
     
@@ -251,7 +251,7 @@ std::unique_ptr<DeclarationAST> \
     getNextToken(); // consume '='
     auto Expr = ExpressionParser(CurBlock);
     if (!Expr) {
-       ErLogs.PushError(Identifier, "expression was not reconized", 1); 
+       ErLogs.PushError("", "expression was not reconized", 1); 
        return nullptr;
     }
     return std::make_unique<VarDeclAST>(VarName, Decl, std::move(Expr), 
@@ -300,7 +300,7 @@ std::unique_ptr<DeclarationAST> IfParser(std::shared_ptr<BlockAST> CurBlock) {
 
     auto Cond = ParenParser(CurBlock);
     if (!Cond) {
-        ErLogs.PushError("", "expected a expression after if", 1);
+        ErLogs.PushError("if", "expected a expression", 1);
     }
 
     auto IfBlock = StatementParser(CurBlock);
@@ -319,17 +319,49 @@ std::unique_ptr<DeclarationAST> IfParser(std::shared_ptr<BlockAST> CurBlock) {
             return nullptr;
         }
         return std::make_unique<IfAST>(std::move(Cond), std::move(IfBlock),
-            std::move(ElseBlock), CurBlock);
+            std::move(ElseBlock));
     }
 
-    return std::make_unique<IfAST>(std::move(Cond), std::move(IfBlock), nullptr,
-        CurBlock);
+    return std::make_unique<IfAST>(std::move(Cond), std::move(IfBlock), nullptr);
+}
+
+// while -> while parenexpr stmt
+std::unique_ptr<DeclarationAST> \
+    WhileParser(std::shared_ptr<BlockAST> CurBlock) 
+{
+    getNextToken(); // consume while
+
+    auto Cond = ParenParser(CurBlock);
+    if (!Cond) {
+        ErLogs.PushError("while", "expected a expression", 1);
+        return nullptr;
+    } 
+
+    // Block need to be in state of Loop
+    CurBlock->ChangeState(LOOP);
+    auto Loop = StatementParser(CurBlock);
+
+    return std::make_unique<WhileAST>(std::move(Cond), std::move(Loop));
+}
+
+// break
+std::unique_ptr<DeclarationAST>\
+    BreakParser(std::shared_ptr<BlockAST> CurBlock) 
+{
+    getNextToken(); // consume break
+    if (CurBlock->ReturnState() != LOOP) {
+        ErLogs.PushError("break", "found in a block without loop", 1);
+        return nullptr;
+    }
+    return std::make_unique<BreakAST>();
 }
 
 // statement -> printstmt
 //           |  vardecl
 //           |  block
 //           |  ifstmt
+//           |  while
+//           |  break
 std::unique_ptr<DeclarationAST> \
     StatementParser(std::shared_ptr<BlockAST> CurBlock) 
 {
@@ -343,7 +375,11 @@ std::unique_ptr<DeclarationAST> \
         case '{':
             return BlockParser(CurBlock);
         case TOKEN_IF:
-            return IfParser(CurBlock); 
+            return IfParser(CurBlock);
+        case TOKEN_WHILE:
+            return WhileParser(CurBlock);
+        case TOKEN_BREAK:
+            return BreakParser(CurBlock); 
         default: {
             ErLogs.PushError(Identifier, "statement not identified", 1); 
             return nullptr;

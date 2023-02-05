@@ -19,7 +19,6 @@ release: $(OBJS)
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-
 clean:
 	rm -f $(OBJS)
 

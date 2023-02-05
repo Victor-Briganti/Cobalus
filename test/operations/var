@@ -1,5 +1,6 @@
 var a = 10;
 a = 20;
-var a = "oi";
-a = "oi";
-print(a);
+{
+    a = "oi";
+    print(a);
+}
