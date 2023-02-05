@@ -170,7 +170,25 @@ class WhileAST : public StatementAST {
     public:
         WhileAST(std::unique_ptr<DeclarationAST> Cond,
                 std::unique_ptr<DeclarationAST> Loop)
-        : Cond(std::move(Cond)), Loop(std::move(Loop)) {} 
+        : Cond(std::move(Cond)), Loop(std::move(Loop)) {}
+
+        void codegen() override;
+};
+
+class ForAST : public StatementAST {
+        std::unique_ptr<DeclarationAST> Var;
+        std::unique_ptr<DeclarationAST> Cond;
+        std::unique_ptr<DeclarationAST> Iterator;
+        std::unique_ptr<DeclarationAST> Loop;
+
+        public:
+            ForAST(std::unique_ptr<DeclarationAST> Var,
+                   std::unique_ptr<DeclarationAST> Cond,
+                   std::unique_ptr<DeclarationAST> Iterator,
+                   std::unique_ptr<DeclarationAST> Loop)
+                : Var(std::move(Var)), Cond(std::move(Cond)),
+                  Iterator(std::move(Iterator)),
+                  Loop(std::move(Loop)) {}
 
         void codegen() override;
 };

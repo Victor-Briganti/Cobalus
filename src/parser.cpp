@@ -297,7 +297,7 @@ std::unique_ptr<DeclarationAST> BlockParser(std::shared_ptr<BlockAST> CurBlock)
     return Inside;
 }
 
-// ifstmt -> if parenexpr statement '(' else statement ')'?
+// ifstmt -> 'if' parenexpr statement '(' 'else' statement ')'?
 std::unique_ptr<DeclarationAST> IfParser(std::shared_ptr<BlockAST> CurBlock) {
     getNextToken(); // consume if
 
@@ -328,7 +328,7 @@ std::unique_ptr<DeclarationAST> IfParser(std::shared_ptr<BlockAST> CurBlock) {
     return std::make_unique<IfAST>(std::move(Cond), std::move(IfBlock), nullptr);
 }
 
-// while -> while parenexpr stmt
+// whilestmt -> 'while' parenexpr stmt
 std::unique_ptr<DeclarationAST> \
     WhileParser(std::shared_ptr<BlockAST> CurBlock) 
 {
@@ -341,13 +341,62 @@ std::unique_ptr<DeclarationAST> \
     } 
 
     // Block need to be in state of Loop
+    int CurState = CurBlock->ReturnState(); // Saves the current state
     CurBlock->ChangeState(LOOP);
     auto Loop = StatementParser(CurBlock);
+    CurBlock->ChangeState(CurState); // return to the previous state
 
     return std::make_unique<WhileAST>(std::move(Cond), std::move(Loop));
 }
 
-// break
+// forstmt -> 'for' '(' statement ';' expression ';' expression ')' statement
+std::unique_ptr<DeclarationAST> ForParser(std::shared_ptr<BlockAST> CurBlock)
+{
+    getNextToken(); // consume 'for'
+
+    if (CurToken != '(') {
+        ErLogs.PushError("for", "expected a ')'", 1);
+        return nullptr;
+    }
+    getNextToken(); // consume '('
+
+    int CurState = CurBlock->ReturnState(); // Saves the current state
+    CurBlock->ChangeState(LOOP);
+
+    auto Var = StatementParser(CurBlock);
+
+    if (CurToken != ';') {
+        ErLogs.PushError("for", "expected a ';'", 1);
+        return nullptr;
+    }
+    getNextToken(); // consume ';'
+
+    auto Cond = ExpressionParser(CurBlock);
+
+    if (CurToken != ';') {
+        ErLogs.PushError("for", "expected a ';'", 1);
+        return nullptr;
+    }
+    getNextToken(); // consume ';'
+
+    auto Interator = StatementParser(CurBlock);
+
+    if (CurToken != ')') {
+        ErLogs.PushError("for", "expected a ')'", 1);
+        return nullptr;
+    }
+    getNextToken(); // consume ')'
+
+    auto Loop = StatementParser(CurBlock);
+
+    CurBlock->ChangeState(CurState); // return to the previous state
+
+    return std::make_unique<ForAST>(std::move(Var), std::move(Cond),
+                                    std::move(Interator),
+                                    std::move(Loop));
+}
+
+// breakstmt -> break
 std::unique_ptr<DeclarationAST>\
     BreakParser(std::shared_ptr<BlockAST> CurBlock) 
 {
@@ -363,8 +412,9 @@ std::unique_ptr<DeclarationAST>\
 //           |  vardecl
 //           |  block
 //           |  ifstmt
-//           |  while
-//           |  break
+//           |  whilestmt
+//           |  forstmt
+//           |  breakstmt
 std::unique_ptr<DeclarationAST> \
     StatementParser(std::shared_ptr<BlockAST> CurBlock) 
 {
@@ -381,6 +431,8 @@ std::unique_ptr<DeclarationAST> \
             return IfParser(CurBlock);
         case TOKEN_WHILE:
             return WhileParser(CurBlock);
+        case TOKEN_FOR:
+            return ForParser(CurBlock);
         case TOKEN_BREAK:
             return BreakParser(CurBlock); 
         default: {

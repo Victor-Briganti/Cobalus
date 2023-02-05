@@ -275,6 +275,60 @@ void WhileAST::codegen() {
     CobaluStack.SetBreaks(start, end-2, end);
 }
 
+void ForAST::codegen() {
+    // First generates the variable
+    Var->codegen();
+
+    // Saves the current position of the stack, to return later
+    int start = CobaluStack.Size() - 1;
+
+    // Generates the code of the condition
+    Cond->codegen();
+
+    // Creates the setto to that points to the end of the loop
+    Bytecode endloop;
+    endloop.inst = setto;
+    CobaluStack.Push(endloop);
+
+    // Saves the position of the endloop
+    int endpos = CobaluStack.Size() - 1;
+
+    // Generates the loop code
+    Loop->codegen();
+
+    // Generates the code of the iterator
+    Iterator->codegen();
+
+    // Generates a always false
+    Bytecode alwfalse;
+    alwfalse.inst = bolen;
+    alwfalse.data = false;
+    CobaluStack.Push(alwfalse);
+
+    // Generates the byte code to return to the start of the loop
+    // Doesn't need to generate always false because block already does it
+    // Generates the setto
+    Bytecode startloop;
+    startloop.inst = setto;
+    startloop.offset = start;
+    CobaluStack.Push(startloop);
+
+    // Generates the null so the condition has where to go if fails
+    Bytecode endpoint;
+    endpoint.inst = none;
+    CobaluStack.Push(endpoint);
+
+    // Saves the current position of the stack so we can escape
+    // the loop
+    int end = CobaluStack.Size() - 1;
+    endloop.offset = end;
+    CobaluStack.Insert(endloop, endpos);
+
+    // Set breakpoints if any. (End - 2) we don't need to verify the end anyway
+    CobaluStack.SetBreaks(start, end-2, end);
+    return;
+}
+
 void BreakAST::codegen() {
     // Generates a always false
     Bytecode alwfalse;
