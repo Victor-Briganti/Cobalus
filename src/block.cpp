@@ -15,8 +15,8 @@ int BlockAST::getOffset(std::string Variable) {
         if (!ParentBlock) {
             return -1;
         }
-        ParentBlock->getOffset(Variable);
-    } 
+        return ParentBlock->getOffset(Variable);
+    }
     return OffsetMap[Variable];
 }
 

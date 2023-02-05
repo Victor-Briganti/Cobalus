@@ -1,6 +1,8 @@
 var a = 10;
-a = 20;
+var b = 20;
 {
-    a = "oi";
-    print(a);
+a = a + 1;
+b = b + 1;
+print(a);
+print(b);
 }

@@ -1,6 +1,11 @@
 var a = 0;
+while (a < 3) {
+    var b = 0;
+   
+    while (b < 2) {
+        print(b);
+        b = b + 1;
+    }
 
-while (a < 2) {
-    print(a);
     a = a + 1;
 }
