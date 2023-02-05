@@ -12,6 +12,7 @@ Calculus ExecStack;
 // Stack of instructions
 InstructionStack CobaluStack;
 
+#ifdef DEBUG
 // Map of Instructions to String
 std::unordered_map<Instruction, std::string> inst_to_str = { 
     {ndoubl, "ndoubl"},
@@ -33,6 +34,7 @@ std::unordered_map<Instruction, std::string> inst_to_str = {
     {stio, "stio"},
     {setto, "setto"},
 };
+#endif
 
 // Map of Instructions to Methods
 typedef void (Calculus::*calc_method)();
@@ -101,7 +103,7 @@ void InstructionStack::Goto(int offset) {
     sp = offset;
 }
 
-#ifdef STACK 
+#ifdef DEBUG
 void InstructionStack::StackReset() {
     sp = 0;
 }
@@ -118,10 +120,6 @@ void Interpreter(Bytecode byte, int offset) {
         case bolen:
         case cstr:
         case none: {
-            #ifdef DEBUG 
-                printf("[%s]:", inst_to_str[byte.inst].c_str());
-            #endif
-
             ExecStack.PushCalc(byte.data);
             break;
         }
@@ -139,28 +137,16 @@ void Interpreter(Bytecode byte, int offset) {
         case invsig:
         case stio:
         case setto: {
-            #ifdef DEBUG 
-                printf("[%s]:", inst_to_str[byte.inst].c_str());
-            #endif
-
             // Cool Hack to call methods that don't need args
             calc_method method = inst_to_func[byte.inst];
             (ExecStack.*method)();
             break;
         } 
         case varst: {
-            #ifdef DEBUG
-                printf("[varst]\n");
-            #endif
-         
            ExecStack.stvarData(offset);
            break;
         }
         case varrt: {
-            #ifdef DEBUG 
-                printf("[varrt]\n");
-            #endif
-
             ExecStack.retvarData(offset);
             break;
         }
@@ -189,7 +175,7 @@ void CodeExec() {
        return;
     }
    
-    #ifdef STACK
+    #ifdef DEBUG
         std::cout << std::left << std::setw(30) << "================ COBALUS STACK ================" << std::endl;
         std::cout << std::left << std::setw(6) << "x" << "|";
         std::cout << std::left << std::setw(20) << "data";

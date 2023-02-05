@@ -120,7 +120,7 @@ void VarValAST::codegen() {
     // CobaluStack
     Bytecode byte;
     byte.inst = varrt;
-    byte.offset = ParentBlock->getOffset(Variable);
+    byte.offset = ParentBlock->getOffset(Variable) + 1;
     
     // If not found push a null value
     if (byte.offset == -1) {
@@ -154,13 +154,13 @@ void VarDeclAST::codegen() {
     // Verify if is a declaration or is a reassign of a value.
     // If is a declaration insert its offset on the table
     if (Decl == 1) {
-        byte.offset = ParentBlock->setOffset(Variable);
+        byte.offset = ParentBlock->setOffset(Variable) + 1;
         CobaluStack.Push(byte);
         return;
     }
 
     // Is a reassign so get the offset value
-    byte.offset = ParentBlock->getOffset(Variable);
+    byte.offset = ParentBlock->getOffset(Variable) + 1;
     CobaluStack.Push(byte);
     return;
 }

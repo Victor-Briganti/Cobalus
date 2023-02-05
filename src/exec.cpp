@@ -44,30 +44,6 @@ int Calculus::EmptyStack() {
 
 // Insert Values on the stack of execution
 void Calculus::PushCalc(Value byte) {
-    #ifdef DEBUG
-        switch(byte.index()) {
-            case doub:{
-                printf("  %g\n", std::get<double>(byte));
-                break;
-            }
-            case boo: {
-                printf("  %d\n", std::get<bool>(byte));
-                break;
-            }
-            case str: {
-                printf("  %s\n", std::get<std::string>(byte).c_str());
-                break;
-            }
-            case nil:{
-                printf("  null\n");
-                break;
-            }
-            default: {
-                printf("TYPE ERROR\n");
-                break;
-            }
-        }
-    #endif
     Calc.push_back(byte);
 }
 
@@ -94,19 +70,6 @@ void Calculus::addData() {
         ErLogs.PushError("", "types don't match", 2);        
         return;
     } 
-
-    #ifdef DEBUG
-    if(Right.index() == doub){
-        printf("  %g\n", std::get<double>(Left));
-        printf("  +\n");
-        printf("  %g\n", std::get<double>(Right));
-    }
-    if (Right.index() == str) {
-        printf("  %s\n", std::get<std::string>(Left).c_str());
-        printf("  +\n");
-        printf("  %s\n", std::get<std::string>(Right).c_str());
-    }
-    #endif
 
     if (!Left.index()) {
         Right = std::get<double>(Left) + std::get<double>(Right);
@@ -143,12 +106,6 @@ void Calculus::subData() {
         return;
     }
 
-    #ifdef DEBUG 
-        printf("  %g\n", std::get<double>(Left));
-        printf("  -\n");
-        printf("  %g\n", std::get<double>(Right));
-    #endif
-    
     Right = std::get<double>(Left) - std::get<double>(Right);
     Calc.push_back(Right);
 }
@@ -174,12 +131,6 @@ void Calculus::mulData() {
         return;
     }
 
-    #ifdef DEBUG 
-        printf("  %g\n", std::get<double>(Left));
-        printf("  *\n");
-        printf("  %g\n", std::get<double>(Right));
-    #endif
-    
     Right = std::get<double>(Left) * std::get<double>(Right);
     Calc.push_back(Right);
 }
@@ -205,12 +156,6 @@ void Calculus::divData() {
         return;
     }
 
-    #ifdef DEBUG 
-        printf("  %g\n", std::get<double>(Left));
-        printf("  /\n");
-        printf("  %g\n", std::get<double>(Right));
-    #endif
-    
     Right = std::get<double>(Left) / std::get<double>(Right);
     Calc.push_back(Right);
 }
@@ -232,11 +177,6 @@ void Calculus::invsigData() {
         ErLogs.PushError("", "illegal instruction in strings", 2);        
         return;
     }
-    
-    #ifdef DEBUG 
-        printf("  -\n");
-        printf("  %g\n", std::get<double>(Expr));
-    #endif
 
     Calc.push_back(-std::get<double>(Expr));
 }
@@ -255,24 +195,7 @@ void Calculus::negData() {
         ErLogs.PushError("", "illegal instruction in strings", 2);        
         return;
     }
-    
-    #ifdef DEBUG 
-    if (!Expr.index()){
-        printf("  !\n");
-        printf("  %g\n", std::get<double>(Expr));
-    }
-    if (Expr.index() == 1) { 
-        printf("  !\n");
-        if (!std::get<bool>(Expr)){
-            printf("  !\n");
-            printf("  true\n");
-        } else {
-            printf("  !\n");
-            printf("  false\n");
-        }
-    }
-    #endif
-    
+
     if (Expr.index() == doub){
         if(!std::get<double>(Expr)) {
             Value tmp = 1.0;
@@ -316,24 +239,6 @@ void Calculus::eqData() {
         return;
     }
 
-    #ifdef DEBUG 
-     if (Right.index() == str) {
-        printf("  %s\n", std::get<std::string>(Left).c_str());
-        printf("  ==\n");
-        printf("  %s\n", std::get<std::string>(Right).c_str());
-     }
-     if (Right.index() == boo && Left.index() == boo){
-        printf("  %d\n", std::get<bool>(Left));
-        printf("  ==\n");
-        printf("  %d\n", std::get<bool>(Right));
-     }
-     if (Right.index() == doub && Left.index() == doub) {
-        printf("  %g\n", std::get<double>(Left));
-        printf("  ==\n");
-        printf("  %g\n", std::get<double>(Right));
-     }
-    #endif
-    
     if (Right.index() == doub && Left.index() == doub){
         Right = (std::get<double>(Left) == std::get<double>(Right));
         Calc.push_back(Right);
@@ -371,24 +276,6 @@ void Calculus::ineqData() {
         return;
     }
 
-    #ifdef DEBUG 
-     if (Right.index() == str) {
-        printf("  %s\n", std::get<std::string>(Left).c_str());
-        printf("  !=\n");
-        printf("  %s\n", std::get<std::string>(Right).c_str());
-     }
-     if (Right.index() == boo && Left.index() == boo){
-        printf("  %d\n", std::get<bool>(Left));
-        printf("  !=\n");
-        printf("  %d\n", std::get<bool>(Right));
-     }
-     if (Right.index() == doub && Left.index() == doub) {
-        printf("  %g\n", std::get<double>(Left));
-        printf("  !=\n");
-        printf("  %g\n", std::get<double>(Right));
-     }
-    #endif
-    
     if (Right.index() == doub && Left.index() == doub){
         Right = (std::get<double>(Left) != std::get<double>(Right));
         Calc.push_back(Right);
@@ -439,19 +326,6 @@ void Calculus::grData() {
         return;
     }
 
-    #ifdef DEBUG 
-     if (Right.index() == boo && Left.index() == boo){
-        printf("  %d\n", std::get<bool>(Left));
-        printf("  >\n");
-        printf("  %d\n", std::get<bool>(Right));
-     }
-     if (Right.index() == doub && Left.index() == doub) {
-        printf("  %g\n", std::get<double>(Left));
-        printf("  >\n");
-        printf("  %g\n", std::get<double>(Right));
-     }
-    #endif
-    
     if (Right.index() == doub && Left.index() == doub){
         Right = (std::get<double>(Left) > std::get<double>(Right));
         Calc.push_back(Right);
@@ -487,19 +361,6 @@ void Calculus::lsData() {
         return;
     }
 
-    #ifdef DEBUG 
-     if (Right.index() == boo && Left.index() == boo){
-        printf("  %d\n", std::get<bool>(Left));
-        printf("  <\n");
-        printf("  %d\n", std::get<bool>(Right));
-     }
-     if (Right.index() == doub && Left.index() == doub) {
-        printf("  %g\n", std::get<double>(Left));
-        printf("  <\n");
-        printf("  %g\n", std::get<double>(Right));
-     }
-    #endif
-    
     if (Right.index() == doub && Left.index() == doub){
         Right = std::get<double>(Left) < std::get<double>(Right);
         Calc.push_back(Right);
@@ -536,19 +397,6 @@ void Calculus::greqData() {
         return;
     }
 
-    #ifdef DEBUG 
-     if (Right.index() == boo && Left.index() == boo){
-        printf("  %d\n", std::get<bool>(Left));
-        printf("  >=\n");
-        printf("  %d\n", std::get<bool>(Right));
-     }
-     if (Right.index() == doub && Left.index() == doub) {
-        printf("  %g\n", std::get<double>(Left));
-        printf("  >=\n");
-        printf("  %g\n", std::get<double>(Right));
-     }
-    #endif
-    
     if (Right.index() == doub && Left.index() == doub){
         Right = (std::get<double>(Left) >= std::get<double>(Right));
         Calc.push_back(Right);
@@ -590,24 +438,6 @@ void Calculus::lseqData() {
         return;
     }
 
-    #ifdef DEBUG 
-     if (Right.index() == str) {
-        printf("  %s\n", std::get<std::string>(Left).c_str());
-        printf("  <=\n");
-        printf("  %s\n", std::get<std::string>(Right).c_str());
-     }
-     if (Right.index() == boo){
-        printf("  %d\n", std::get<bool>(Left));
-        printf("  <=\n");
-        printf("  %d\n", std::get<bool>(Right));
-     }
-     if (Right.index() == doub) {
-        printf("  %g\n", std::get<double>(Left));
-        printf("  <=\n");
-        printf("  %g\n", std::get<double>(Right));
-     }
-    #endif
-    
     if (Right.index() == doub){
         Right = (std::get<double>(Left) <= std::get<double>(Right));
         Calc.push_back(Right);
@@ -663,37 +493,6 @@ void Calculus::stvarData(int offset) {
     Value var = Calc.back();
     Calc.pop_back();
 
-    #ifdef DEBUG
-    printf("[offset]: %d\n", offset);
-    printf("[stackval]: ");
-    switch(var.index()) {
-        case doub: {
-            printf("%g\n", std::get<double>(var));
-            break;
-        }
-        case boo: {
-            if(std::get<bool>(var)) {
-                printf("true\n");
-            } else {
-                printf("false\n");
-            }
-            break;
-        }
-        case str: {
-            printf("'%s'\n", std::get<std::string>(var).c_str());
-            break;
-        }
-        case nil: {
-            printf("null\n");
-            break;
-        }
-        default: {
-            printf("error\n");
-            break;
-        }
-    }
-    #endif
-
     CobaluStack.ChangeValue(var, offset);
 
     return;
@@ -701,40 +500,6 @@ void Calculus::stvarData(int offset) {
 
 // Return the value of the variable
 void Calculus::retvarData(int offset) {
-    #ifdef DEBUG
-    Bytecode var = CobaluStack.Return(offset);
-    printf("[offset]: %d\n", offset);
-    printf("[getto]: ");
-    var = CobaluStack.Return(var.offset);
-    printf("%d\n", var.offset);
-    printf("[stackval]:");
-    switch(var.data.index()) {
-        case doub: {
-            printf("%g\n", std::get<double>(var.data));
-            break;
-        }
-        case boo: {
-            if(std::get<bool>(var.data)) {
-                printf("true\n");
-            } else {
-                printf("false\n");
-            }
-            break;
-        }
-        case str: {
-            printf("'%s'\n", std::get<std::string>(var.data).c_str());
-            break;
-        }
-        case nil: {
-            printf("null\n");
-            break;
-        }
-        default: {
-            printf("error\n");
-            break;
-        }
-    }
-    #endif
 
     Bytecode byte = CobaluStack.Return(offset);
     byte = CobaluStack.Return(byte.offset);
@@ -761,39 +526,19 @@ void Calculus::evalCondition() {
     switch (cond.index()) {
         case doub: {
             if(!std::get<double>(cond)) {
-                #ifdef DEBUG 
-                    printf("%g/t", std::get<double>(cond));
-                    printf("%d\n", byte.offset);
-                #endif
                 CobaluStack.Goto(byte.offset);
-                #ifdef DEBUG 
-                    printf("%g/t", std::get<double>(cond));
-                    printf("%d\n", byte.offset);
-                #endif
                 return;
             }
             return;
         }
         case boo: {
             if(!std::get<bool>(cond)) {
-                #ifdef DEBUG 
-                    printf("%d/t", std::get<bool>(cond));
-                    printf("%d\n", byte.offset);
-                #endif
                 CobaluStack.Goto(byte.offset);
                 return;
             }
-            #ifdef DEBUG 
-                printf("%g/t", std::get<double>(cond));
-                printf("%d\n", byte.offset);
-            #endif
             return;
         }
         default: {
-            #ifdef DEBUG 
-                printf("null/t", std::get<double>(cond));
-                printf("%d\n", byte.offset);
-            #endif
             CobaluStack.Goto(byte.offset);
             return;
         }
