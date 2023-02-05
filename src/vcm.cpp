@@ -103,6 +103,16 @@ void InstructionStack::Goto(int offset) {
     sp = offset;
 }
 
+void InstructionStack::SetBreaks(int Start, int End, int offset) {
+    for (;Start < End; Start++) {
+        if (Stack[Start].inst == setto) {
+            if (Stack[Start].offset == -1) {
+                Stack[Start].offset = offset;
+            }
+        }
+    }
+}
+
 #ifdef DEBUG
 void InstructionStack::StackReset() {
     sp = 0;

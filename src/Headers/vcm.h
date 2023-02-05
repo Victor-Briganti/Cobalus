@@ -58,6 +58,7 @@ class InstructionStack {
         void Advance();
         int SP();
         void Goto(int);
+        void SetBreaks(int, int, int);
         #ifdef DEBUG
         void StackReset();
         #endif

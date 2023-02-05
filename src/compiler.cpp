@@ -270,9 +270,24 @@ void WhileAST::codegen() {
     int end = CobaluStack.Size() - 1;
     endloop.offset = end;
     CobaluStack.Insert(endloop, endpos);
+
+    // Set breakpoints if any
+    CobaluStack.SetBreaks(start, end, end);
 }
 
 void BreakAST::codegen() {
+    // Generates a always false
+    Bytecode alwfalse;
+    alwfalse.inst = bolen;
+    alwfalse.data = false;
+    CobaluStack.Push(alwfalse);
+
+    // Generates the break, it's offset wiil be -1 so we can search it in while
+    Bytecode bytebreak;
+    bytebreak.inst = setto;
+    bytebreak.offset = -1;
+    CobaluStack.Push(bytebreak);
+
     return;
 }
 

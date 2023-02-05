@@ -281,8 +281,11 @@ std::unique_ptr<DeclarationAST> BlockParser(std::shared_ptr<BlockAST> CurBlock)
 {
     getNextToken(); // consume '{'
 
-    std::shared_ptr<BlockAST> CodeBlock = 
+    std::shared_ptr<BlockAST> CodeBlock =
         std::make_shared<BlockAST>(CurBlock, COMMON);
+    if (CurBlock->ReturnState() != GLOBAL) {
+        CodeBlock->ChangeState(CurBlock->ReturnState());
+    }
 
     auto Inside = InsideParser(CodeBlock);
 
