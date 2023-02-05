@@ -271,8 +271,8 @@ void WhileAST::codegen() {
     endloop.offset = end;
     CobaluStack.Insert(endloop, endpos);
 
-    // Set breakpoints if any
-    CobaluStack.SetBreaks(start, end, end);
+    // Set breakpoints if any. (End - 2) we don't need to verify the end anyway
+    CobaluStack.SetBreaks(start, end-2, end);
 }
 
 void BreakAST::codegen() {
