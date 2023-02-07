@@ -49,6 +49,8 @@ std::unique_ptr<DeclarationAST> ExpressionParser \
     (std::shared_ptr<BlockAST> CurBlock);
 std::unique_ptr<DeclarationAST> StatementParser \
     (std::shared_ptr<BlockAST> CurBlock);
+std::unique_ptr<DeclarationAST> IdParser\
+(std::shared_ptr<BlockAST>);
 
 // number -> double
 std::unique_ptr<DeclarationAST> DoubleParser() {
@@ -96,22 +98,12 @@ std::unique_ptr<DeclarationAST> ParenParser(std::shared_ptr<BlockAST> CurBlock)
     return Expr;
 }
 
-// variable -> any
-std::unique_ptr<DeclarationAST> \
-    VariableParser(std::shared_ptr<BlockAST> CurBlock) 
-{
-    getNextToken(); // consume id
-    std::string VarName = Identifier;
-
-    return std::make_unique<VarValAST>(Identifier, CurBlock);
-}
-
 // primary -> number
 //         |  bool
 //         |  string
 //         |  null
 //         |  parenexpr
-//         |  variable
+//         |  idstmt
 std::unique_ptr<DeclarationAST> PrimaryParser(std::shared_ptr<BlockAST> CurBlock) 
 {
     switch(CurToken) {
@@ -132,7 +124,7 @@ std::unique_ptr<DeclarationAST> PrimaryParser(std::shared_ptr<BlockAST> CurBlock
         case '(':
             return ParenParser(CurBlock);
         case TOKEN_ID:
-            return VariableParser(CurBlock);
+            return IdParser(CurBlock);
     }
 }
 
@@ -232,19 +224,15 @@ std::unique_ptr<DeclarationAST> PrintParser(std::shared_ptr<BlockAST> CurBlock)
 
 // vardecl -> var id '(' = expression ')'?
 std::unique_ptr<DeclarationAST> \
-    VarAssignParser(std::shared_ptr<BlockAST> CurBlock) 
+VarDeclParser(std::shared_ptr<BlockAST> CurBlock)
 {
-    int Decl = 0;
-    if (CurToken == TOKEN_VAR) {
-        Decl = 1; // its a first declaration
-        getNextToken(); // consume var
-    }
-
-    std::string VarName = Identifier;
+    getNextToken(); // consume var
     getNextToken(); // consume identifier
 
+    std::string VarName = Identifier;
+
     if (CurToken != TOKEN_ATR) {
-        return std::make_unique<VarDeclAST>(VarName, Decl, nullptr, 
+        return std::make_unique<VarDeclAST>(VarName, 1, nullptr,
                                             CurBlock);
     }
     
@@ -254,8 +242,40 @@ std::unique_ptr<DeclarationAST> \
        ErLogs.PushError("", "expression was not reconized", 1); 
        return nullptr;
     }
-    return std::make_unique<VarDeclAST>(VarName, Decl, std::move(Expr), 
+    return std::make_unique<VarDeclAST>(VarName, 1, std::move(Expr),
                                         CurBlock);
+}
+
+// varassign -> id = expression
+std::unique_ptr<DeclarationAST>\
+VarAssignParser(std::shared_ptr<BlockAST> CurBlock, std::string IdName)
+{
+    getNextToken(); // consume '='
+    auto Expr = ExpressionParser(CurBlock);
+    if (!Expr) {
+       ErLogs.PushError("", "expression was not reconized", 1);
+       return nullptr;
+    }
+    return std::make_unique<VarDeclAST>(IdName, 0, std::move(Expr),
+                                        CurBlock);
+}
+
+// idstmt -> varassign
+//        -> variable
+//        -> callfunc
+std::unique_ptr<DeclarationAST>\
+IdParser(std::shared_ptr<BlockAST> CurBlock)
+{
+    getNextToken(); // consume id
+    std::string IdName = Identifier;
+
+    if (CurToken == TOKEN_ATR) {
+        auto Var = VarAssignParser(CurBlock, IdName);
+        return Var;
+    }
+
+    // If every thing fails is a variable
+    return std::make_unique<VarValAST>(IdName, CurBlock);
 }
 
 // inside -> statement
@@ -422,9 +442,9 @@ std::unique_ptr<DeclarationAST> \
         case TOKEN_PRINT:
             return PrintParser(CurBlock);
         case TOKEN_VAR:
-            return VarAssignParser(CurBlock);
+            return VarDeclParser(CurBlock);
         case TOKEN_ID:
-            return VarAssignParser(CurBlock); // Change this when function added
+            return IdParser(CurBlock); // Change this when function added
         case '{':
             return BlockParser(CurBlock);
         case TOKEN_IF:
