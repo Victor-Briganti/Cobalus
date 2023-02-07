@@ -9,15 +9,20 @@ class BlockAST {
     // variable map. 
     std::shared_ptr<BlockAST> ParentBlock;
 
-    // This will be a map that stores the offset of variables and functions
-    std::unordered_map<std::string, int> OffsetMap;
-    
+    // This will be a map that stores the offset of variables
+    std::unordered_map<std::string, int> VarMap;
+
+    // This will be a map that stores the offset of functions
+    std::unordered_map<std::string, int> FuncMap;
+
     public:
         BlockAST(std::shared_ptr<BlockAST> ParentBlock ,int State) 
             : State(State), ParentBlock(ParentBlock)  {}
 
-         int getOffset(std::string Variable);
-         int setOffset(std::string Variable);
+         int varGetOffset(std::string);
+         int varSetOffset(std::string);
+         int funcSetOffset(std::string);
+         int funcGetOffset(std::string);
          void ChangeState(int);
          int ReturnState();
 };

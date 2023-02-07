@@ -1,5 +1,7 @@
 #include "global.h"
 #include "block.h"
+#include <clocale>
+#include <memory>
 
 // Enum for definition of Blocks
 // By definition the blocks of functions can only be implemented inside the 
@@ -7,6 +9,7 @@
 enum BlockState {
     GLOBAL,
     FUNC,
+    FUNCLOOP,
     LOOP,
     COMMON,
 };
@@ -199,6 +202,63 @@ class BreakAST : public StatementAST {
 
         void codegen() override;
 };
+
+
+class FunctionAST : public DeclarationAST {
+    std::string Name;
+    std::vector<std::string> Var;
+    std::unique_ptr<DeclarationAST> Exec;
+    std::shared_ptr<BlockAST> Env;
+
+    public:
+        FunctionAST(std::string Name) : Name(Name) {}
+
+        bool SetVar(std::string PlaceHolder) {
+            if(std::find(Var.begin(), Var.end(), PlaceHolder) == Var.end()) {
+                Var.push_back(PlaceHolder);
+                return true;
+            }
+            return false;
+        }
+
+        void SetExec(std::unique_ptr<DeclarationAST> ExecBlock) {
+            Exec = std::move(ExecBlock);
+        }
+
+        void SetEnv(std::shared_ptr<BlockAST> FuncEnv) {
+            Env = FuncEnv;
+        }
+
+        int VarSize() {
+            return Var.size();
+        }
+
+        void codegen() override;
+};
+
+class CallFuncAST : public StatementAST {
+    std::string FuncName;
+    std::vector<std::unique_ptr<DeclarationAST>> VarVal;
+
+    public:
+        CallFuncAST(std::string FuncName) : FuncName(FuncName) {}
+
+        void SetVar(std::unique_ptr<DeclarationAST> Val) {
+            VarVal.push_back(std::move(Val));
+        }
+
+        void codegen() override;
+};
+
+class ReturnAST : public StatementAST {
+    std::unique_ptr<DeclarationAST> RetVal;
+
+    public:
+        ReturnAST(std::unique_ptr<DeclarationAST> RetVal) : RetVal(std::move(RetVal)) {}
+
+        void codegen() override;
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /////////                           FUNCTIONS                         /////////

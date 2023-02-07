@@ -1,4 +1,5 @@
 // Definition of all librarys
+#include <algorithm>
 #include <cctype>
 #include <cstdlib>
 #include <cstring>

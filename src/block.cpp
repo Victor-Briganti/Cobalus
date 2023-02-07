@@ -5,21 +5,37 @@
 ////////////                    BLOCK METHODS                      ////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-int BlockAST::setOffset(std::string Variable) {
-    OffsetMap[Variable] = CobaluStack.Size() - 1;
+///   VARIABLES   ///
+int BlockAST::varSetOffset(std::string Variable) {
+    VarMap[Variable] = CobaluStack.Size() - 1;
     return CobaluStack.Size() - 1;
 }
 
-int BlockAST::getOffset(std::string Variable) {
-   if(!OffsetMap.count(Variable)) {
+int BlockAST::varGetOffset(std::string Variable) {
+   if(!VarMap.count(Variable)) {
         if (!ParentBlock) {
             return -1;
         }
-        return ParentBlock->getOffset(Variable);
+        return ParentBlock->varGetOffset(Variable);
     }
-    return OffsetMap[Variable];
+    return VarMap[Variable];
 }
 
+///   FUNCTIONS   ///
+int BlockAST::funcSetOffset(std::string Variable) {
+    FuncMap[Variable] = CobaluStack.Size() - 1;
+    return CobaluStack.Size() - 1;
+}
+
+int BlockAST::funcGetOffset(std::string Variable) {
+   if(!FuncMap.count(Variable)) {
+        if (!ParentBlock) {
+            return -1;
+        }
+        return ParentBlock->funcGetOffset(Variable);
+    }
+    return FuncMap[Variable];
+}
 void BlockAST::ChangeState(int NewState) {
     State = NewState;
 }

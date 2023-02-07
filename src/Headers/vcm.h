@@ -34,6 +34,7 @@ enum Instruction {
 
     // Goto
     setto,
+    endstk, // End Of Stack
 };
 
 struct Bytecode {

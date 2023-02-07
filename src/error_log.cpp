@@ -37,5 +37,5 @@ int Logging::NumErrors() {
 
 // Keep track of line number
 void Logging::AddLine() {
-    LineNumber++;
+    LineNumber += 1;
 }
