@@ -16,7 +16,7 @@ class Calculus {
         int EmptyStack();    
 
         // Operations on stack
-        void PushCalc(Value byte);
+        void PushCalc(Value);
 
         // Binary Operations on Doubles
         // Arithmetic 
@@ -37,13 +37,17 @@ class Calculus {
         void invsigData();
         
         // Variable
-        void stvarData(int offset);
-        void retvarData(int offset);
+        void stvarData(int);
+        void retvarData(int);
 
         // Built-in
         void printData(); // print
 
         // Condition
         void evalCondition();
+
+        // Function
+        void funcGen(int);
+        void callFunc(int);
 };
     

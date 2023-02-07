@@ -33,6 +33,10 @@ std::unordered_map<Instruction, std::string> inst_to_str = {
     {invsig, "invsig"},
     {stio, "stio"},
     {setto, "setto"},
+    {funcsta, "funcsta"},
+    {funcend, "funcend"},
+    {callfunc, "callfunc"},
+    {endstk, "endstk"},
 };
 #endif
 
@@ -68,7 +72,7 @@ int InstructionStack::Size() {
 }
 
 void InstructionStack::SetEOS() {
-    eos = Stack.size();
+    eos = Stack.size() - 1;
 }
 
 int InstructionStack::EOS() {
@@ -111,11 +115,12 @@ void InstructionStack::Goto(int offset) {
     sp = offset;
 }
 
-void InstructionStack::SetBreaks(int Start, int End, int offset) {
+void InstructionStack::SetBreaks(int Start, int End) {
     for (;Start < End; Start++) {
         if (Stack[Start].inst == setto) {
-            if (Stack[Start].offset == -1) {
-                Stack[Start].offset = offset;
+            if (std::get<double>(Stack[Start].data) == -1) {
+                Stack[Start].data = 0.0;
+                Stack[Start].offset = -(Stack[Start].offset - End);
             }
         }
     }
@@ -168,6 +173,17 @@ void Interpreter(Bytecode byte, int offset) {
             ExecStack.retvarData(offset);
             break;
         }
+        case funcsta: {
+            ExecStack.funcGen(offset);
+            break;
+        }
+        case callfunc: {
+            ExecStack.callFunc(offset);
+            break;
+        }
+        case stop: {
+            break;
+        }
         default: {
             ErLogs.PushError("", "Instuction was not reconized", 2);
             break; // the show must go on
@@ -175,10 +191,10 @@ void Interpreter(Bytecode byte, int offset) {
     }
 }
 
-void CodeExec() {
+void CodeExec(int EOS) {
     // Execute instruction line by line
     while (true) {
-        if (CobaluStack.SP() != CobaluStack.EOS()) {
+        if (CobaluStack.SP() != EOS) {
             Interpreter(CobaluStack.Return(), CobaluStack.SP());
             CobaluStack.Advance();
         } else {
@@ -191,7 +207,19 @@ void CodeExec() {
        ErLogs.ShowErrors();
        return;
     }
-   
+}
+
+void InitVM() {
+    // Generate the code and fill the stack
+    Compile();
+
+    // Set the End of Stack
+    Bytecode byte;
+    byte.inst = endstk;
+    CobaluStack.Push(byte);
+    CobaluStack.SetEOS();
+
+    CodeExec(CobaluStack.Size() - 1);
     #ifdef DEBUG
         std::cout << std::left << std::setw(30) << "================ COBALUS STACK ================" << std::endl;
         std::cout << std::left << std::setw(6) << "x" << "|";
@@ -204,17 +232,17 @@ void CodeExec() {
             std::cout << std::left << std::setw(6) << CobaluStack.SP() << "|";
             switch(byte.data.index()) {
             case doub: {
-                std::cout << std::left << std::setw(20) << 
+                std::cout << std::left << std::setw(20) <<
                     std::get<double>(byte.data);
                 break;
             }
             case str: {
-                std::cout << std::left << std::setw(20) << 
+                std::cout << std::left << std::setw(20) <<
                     std::get<std::string>(byte.data);
                 break;
             }
             case boo: {
-                std::cout << std::left << std::setw(20) << 
+                std::cout << std::left << std::setw(20) <<
                     std::get<bool>(byte.data);
                 break;
             }
@@ -233,14 +261,4 @@ void CodeExec() {
         }
         std::cout << std::left << std::setw(30) << "================ END OF STACK =================" << std::endl;
         #endif
-}
-
-void InitVM() {
-    // Generate the code and fill the stack
-    Compile();
-
-    // Set the End of Stack
-    CobaluStack.SetEOS();
-
-    CodeExec();
 }

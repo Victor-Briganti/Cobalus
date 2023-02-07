@@ -1,6 +1,7 @@
-func test(a, b, c) {
-    print(a);
-    print(b);
-    print(c);
-    return;
+func test() {
+    for(var a = 0; a < 2; a = a +1) {
+        print(a);
+    }
 }
+
+test();

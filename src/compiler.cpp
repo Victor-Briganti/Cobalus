@@ -195,7 +195,7 @@ void IfAST::codegen() {
 
     if (!ElseBlock) {
         // Gets position of the stack where it needs to go if the condition fails
-        byte.offset = CobaluStack.Size() - 1; 
+        byte.offset = (CobaluStack.Size() - 1) - tmp;
 
         // Reinsert the value into the stack
         CobaluStack.Insert(byte, tmp);
@@ -203,7 +203,7 @@ void IfAST::codegen() {
     } else {
         // Gets position of the stack where it needs to go if the condition fails
         // it needs to go 2 more because of the none of the block and the setto 
-        byte.offset = CobaluStack.Size() + 1;  
+        byte.offset = (CobaluStack.Size() + 1) - tmp;
 
         // Reinsert the value into the stack
         CobaluStack.Insert(byte, tmp);
@@ -227,7 +227,7 @@ void IfAST::codegen() {
 
     // Gets position of the stack where it needs to go if condition 
     // succed
-    byte.offset = CobaluStack.Size() - 1; 
+    byte.offset = (CobaluStack.Size() - 1) - tmp;
     // Reinsert the value into the stack
     CobaluStack.Insert(byte, tmp);
 
@@ -240,6 +240,8 @@ void WhileAST::codegen() {
 
     // Generates the code of the condition
     Cond->codegen();
+
+    int end = CobaluStack.Size() - 1;
 
     // Creates the setto to that points to the end of the loop
     Bytecode endloop;
@@ -257,7 +259,7 @@ void WhileAST::codegen() {
     // Generates the setto
     Bytecode startloop;
     startloop.inst = setto;
-    startloop.offset = start;
+    startloop.offset = -((CobaluStack.Size()) - start);
     CobaluStack.Push(startloop);
 
     // Generates the null so the condition has where to go if fails
@@ -267,12 +269,12 @@ void WhileAST::codegen() {
 
     // Saves the current position of the stack so we can escape
     // the loop
-    int end = CobaluStack.Size() - 1;
-    endloop.offset = end;
+    //int end = CobaluStack.Size() - 1;
+    endloop.offset = (CobaluStack.Size()-2) - end;
     CobaluStack.Insert(endloop, endpos);
 
     // Set breakpoints if any. (End - 2) we don't need to verify the end anyway
-    CobaluStack.SetBreaks(start, end-2, end);
+    CobaluStack.SetBreaks(start, CobaluStack.Size()-1);
 }
 
 void ForAST::codegen() {
@@ -310,7 +312,7 @@ void ForAST::codegen() {
     // Generates the setto
     Bytecode startloop;
     startloop.inst = setto;
-    startloop.offset = start;
+    startloop.offset = -(CobaluStack.Size() - start);
     CobaluStack.Push(startloop);
 
     // Generates the null so the condition has where to go if fails
@@ -321,11 +323,11 @@ void ForAST::codegen() {
     // Saves the current position of the stack so we can escape
     // the loop
     int end = CobaluStack.Size() - 1;
-    endloop.offset = end;
+    endloop.offset = end-endpos;
     CobaluStack.Insert(endloop, endpos);
 
     // Set breakpoints if any. (End - 2) we don't need to verify the end anyway
-    CobaluStack.SetBreaks(start, end-2, end);
+    CobaluStack.SetBreaks(start, CobaluStack.Size()-1);
     return;
 }
 
@@ -339,17 +341,69 @@ void BreakAST::codegen() {
     // Generates the break, it's offset wiil be -1 so we can search it in while
     Bytecode bytebreak;
     bytebreak.inst = setto;
-    bytebreak.offset = -1;
+    bytebreak.data = -1.0;
+    bytebreak.offset = CobaluStack.Size();
     CobaluStack.Push(bytebreak);
 
     return;
 }
 
 void FunctionAST::codegen() {
+    Bytecode start;
+    start.inst = funcsta;
+    start.data = 0.0;
+
+    // Set the offset of the function in both blocks
+    ParentBlock->funcSetOffset(Name);
+    Env->funcSetOffset(Name);
+
+    start.offset = ParentBlock->funcGetOffset(Name) + 1;
+    CobaluStack.Push(start);
+
+    // Set the variables
+    for (int i=0; i< Var.size(); i++) {
+        Bytecode byte;
+        byte.inst = varst;
+        byte.offset = ParentBlock->varSetOffset(Var[i]) + 1;
+        CobaluStack.Push(byte);
+    }
+
+    // Generates the code execution code of the function
+    Exec->codegen();
+
+    // Generates the end of the function
+    Bytecode end;
+    end.inst = funcend;
+    CobaluStack.Push(end);
+
     return;
 }
 
 void CallFuncAST::codegen() {
+    for (int i=0; i < VarVal.size(); i++) {
+        VarVal[i]->codegen();
+        Bytecode byte;
+        byte.inst = stop;
+        CobaluStack.Push(byte);
+    }
+
+    // Generates the instruction to return the variable from the
+    // CobaluStack
+    Bytecode byte;
+    byte.inst = callfunc;
+    byte.offset = ParentBlock->funcGetOffset(FuncName) + 1;
+
+    // If not found push a null value
+    if (byte.offset == -1) {
+        ErLogs.PushError(FuncName, "not identified", 2);
+        Bytecode byte;
+        byte.inst = none;
+        byte.data = nullptr;
+        CobaluStack.Push(byte);
+        return;
+    }
+
+    CobaluStack.Push(byte);
     return;
 }
 

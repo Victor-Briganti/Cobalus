@@ -268,8 +268,9 @@ VarAssignParser(std::shared_ptr<BlockAST> CurBlock, std::string IdName)
 std::unique_ptr<DeclarationAST>\
 CallFuncParser(std::shared_ptr<BlockAST> CurBlock, std::string IdName)
 {
-   std::unique_ptr<CallFuncAST> Caller =
-       std::make_unique<CallFuncAST>(IdName);
+    getNextToken(); // consume '('
+    std::unique_ptr<CallFuncAST> Caller =
+       std::make_unique<CallFuncAST>(IdName, CurBlock);
 
    while(true) {
        if(CurToken == ')') {
@@ -546,7 +547,7 @@ FunctionParser(std::shared_ptr<BlockAST> CurBlock)
         std::make_shared<BlockAST>(CurBlock, FUNC);
 
     std::unique_ptr<FunctionAST> Func =
-        std::make_unique<FunctionAST>(IdName);
+        std::make_unique<FunctionAST>(IdName, CurBlock);
 
     while(true) {
         if (CurToken == ')') {

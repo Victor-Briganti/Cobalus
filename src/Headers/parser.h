@@ -209,9 +209,12 @@ class FunctionAST : public DeclarationAST {
     std::vector<std::string> Var;
     std::unique_ptr<DeclarationAST> Exec;
     std::shared_ptr<BlockAST> Env;
+    std::shared_ptr<BlockAST> ParentBlock;
 
     public:
-        FunctionAST(std::string Name) : Name(Name) {}
+        FunctionAST(std::string Name,
+                    std::shared_ptr<BlockAST> ParentBlock)
+            : Name(Name), ParentBlock(ParentBlock) {}
 
         bool SetVar(std::string PlaceHolder) {
             if(std::find(Var.begin(), Var.end(), PlaceHolder) == Var.end()) {
@@ -239,9 +242,12 @@ class FunctionAST : public DeclarationAST {
 class CallFuncAST : public StatementAST {
     std::string FuncName;
     std::vector<std::unique_ptr<DeclarationAST>> VarVal;
+    std::shared_ptr<BlockAST> ParentBlock;
 
     public:
-        CallFuncAST(std::string FuncName) : FuncName(FuncName) {}
+        CallFuncAST(std::string FuncName,
+                    std::shared_ptr<BlockAST> ParentBlock)
+            : FuncName(FuncName), ParentBlock(ParentBlock) {}
 
         void SetVar(std::unique_ptr<DeclarationAST> Val) {
             VarVal.push_back(std::move(Val));

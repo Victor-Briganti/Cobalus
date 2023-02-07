@@ -32,6 +32,12 @@ enum Instruction {
     varst, // store
     varrt, // return
 
+    // Function
+    funcsta,
+    funcend,
+    stop, // used to separated expressions in args
+    callfunc,
+
     // Goto
     setto,
     endstk, // End Of Stack
@@ -62,7 +68,7 @@ class InstructionStack {
         void Advance();
         int SP();
         void Goto(int);
-        void SetBreaks(int, int, int);
+        void SetBreaks(int, int);
         #ifdef DEBUG
         void StackReset();
         #endif
@@ -75,3 +81,6 @@ void InitVM();
 
 // Declaration for codegeneration
 void Compile();
+
+// Declaration for execution of code
+void CodeExec(int);

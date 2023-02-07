@@ -1,6 +1,7 @@
 #include "Headers/error_log.h"
 #include "Headers/exec.h" 
 #include "Headers/vcm.h"
+#include <unordered_map>
 
 // Verification for Types
 int TypesMatch(int R, int L) {
@@ -526,22 +527,78 @@ void Calculus::evalCondition() {
     switch (cond.index()) {
         case doub: {
             if(!std::get<double>(cond)) {
-                CobaluStack.Goto(byte.offset);
+                CobaluStack.Goto(CobaluStack.SP() + byte.offset);
                 return;
             }
             return;
         }
         case boo: {
             if(!std::get<bool>(cond)) {
-                CobaluStack.Goto(byte.offset);
+                CobaluStack.Goto(CobaluStack.SP() + byte.offset);
                 return;
             }
             return;
         }
         default: {
-            CobaluStack.Goto(byte.offset);
+            CobaluStack.Goto(CobaluStack.SP() + byte.offset);
             return;
         }
     }
+    return;
+}
+
+// Generates the function in the end of the stack or set it to generate
+void Calculus::funcGen(int offset) {
+    Bytecode byte = CobaluStack.Return(offset);
+
+    if (!std::get<double>(byte.data)) {
+        while(true) {
+            CobaluStack.Advance();
+            Bytecode tmp = CobaluStack.Return(-1);
+            if (tmp.inst == funcend) {
+               CobaluStack.ChangeValue(1.0, offset);
+               return;
+            }
+        }
+    }
+
+    // Map for reassign offset
+    std::unordered_map<int, int> reasoff;
+
+    int fp = CobaluStack.Size() + 1;
+    CobaluStack.Goto(offset);
+    while (true) {
+        Bytecode byte = CobaluStack.Return(-1);
+        if (byte.inst == funcend) {
+            CobaluStack.Push(byte);
+            break;
+        }
+        // Reassign the offset of the variables
+        if (byte.inst == varst) {
+            if(byte.offset == CobaluStack.SP()) {
+                reasoff[byte.offset] = CobaluStack.Size();
+                byte.offset = CobaluStack.Size();
+            } else {
+                byte.offset = reasoff[byte.offset];
+            }
+        }
+        if (byte.inst == varrt) {
+            byte.offset = reasoff[byte.offset];
+        }
+        CobaluStack.Push(byte);
+        CobaluStack.Advance();
+    }
+    CobaluStack.Goto(fp);
+    CodeExec(CobaluStack.Size()-1);
+}
+
+// Does the call to the function
+void Calculus::callFunc(int offset) {
+    Bytecode byte = CobaluStack.Return(offset);
+
+    this->funcGen(byte.offset);
+
+    CobaluStack.Goto(offset);
+
     return;
 }
