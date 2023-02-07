@@ -46,6 +46,7 @@ struct Bytecode {
 class InstructionStack {
     std::vector<Bytecode> Stack;
     int sp; // stack pointer
+    int eos; // end of stack
 
     public:
         InstructionStack() {}
@@ -53,6 +54,8 @@ class InstructionStack {
         // Stack Operations
         void Push(Bytecode);
         int Size();
+        void SetEOS();
+        int EOS();
         void ChangeValue(Value, int);
         void Insert(Bytecode, int);
         Bytecode Return(int);

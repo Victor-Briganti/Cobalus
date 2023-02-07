@@ -67,6 +67,14 @@ int InstructionStack::Size() {
     return Stack.size();
 }
 
+void InstructionStack::SetEOS() {
+    eos = Stack.size();
+}
+
+int InstructionStack::EOS() {
+    return eos;
+}
+
 void InstructionStack::ChangeValue(Value data, int offset) {
     Bytecode byte = Stack[offset];
     byte.data = data;
@@ -170,7 +178,7 @@ void Interpreter(Bytecode byte, int offset) {
 void CodeExec() {
     // Execute instruction line by line
     while (true) {
-        if (CobaluStack.SP() < CobaluStack.Size()) {
+        if (CobaluStack.SP() != CobaluStack.EOS()) {
             Interpreter(CobaluStack.Return(), CobaluStack.SP());
             CobaluStack.Advance();
         } else {
@@ -178,7 +186,6 @@ void CodeExec() {
         }
     }
     
-
     // If there is any error show all of them
     if (ErLogs.NumErrors()) {
        ErLogs.ShowErrors();
@@ -231,6 +238,9 @@ void CodeExec() {
 void InitVM() {
     // Generate the code and fill the stack
     Compile();
-    
+
+    // Set the End of Stack
+    CobaluStack.SetEOS();
+
     CodeExec();
 }
