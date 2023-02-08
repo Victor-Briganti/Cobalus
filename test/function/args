@@ -1,0 +1,7 @@
+func test(a, b) {
+    print(a);
+    print(b);
+    return "works";
+}
+
+print(test(test(0, 1), 2));

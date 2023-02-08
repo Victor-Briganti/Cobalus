@@ -29,6 +29,8 @@ std::unordered_map<Instruction, std::string> inst_to_str = {
     {ineqD, "ineqD"},
     {grD, "grD"},
     {lsD, "lsD"},
+    {lseqD, "lseqD"},
+    {greqD, "greqD"},
     {negte, "negte"},
     {invsig, "invsig"},
     {stio, "stio"},
@@ -38,6 +40,7 @@ std::unordered_map<Instruction, std::string> inst_to_str = {
     {callfunc, "callfunc"},
     {endstk, "endstk"},
     {retrn, "retrn"},
+    {stop, "stop"},
 };
 #endif
 
@@ -58,7 +61,6 @@ std::unordered_map<Instruction, calc_method> inst_to_func = {
     {invsig, &Calculus::invsigData},
     {stio, &Calculus::printData},
     {setto, &Calculus::evalCondition},
-    {retrn, &Calculus::retfuncData},
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,17 +75,21 @@ int InstructionStack::Size() {
     return Stack.size();
 }
 
-void InstructionStack::SetEOS(int eoval) {
-    if (eoval == -1){
-        eos = Stack.size() - 1;
-        return;
-    }
-    eos = eoval;
-
+void InstructionStack::SetEOS() {
+    eos = Stack.size() - 1;
+    return;
 }
 
 int InstructionStack::EOS() {
     return eos;
+}
+
+void InstructionStack::SetRet(int flag) {
+   ret = flag;
+}
+
+int InstructionStack::RET() {
+    return ret;
 }
 
 void InstructionStack::ChangeValue(Value data, int offset) {
@@ -166,7 +172,6 @@ void Interpreter(Bytecode byte, int offset) {
         case negte:
         case invsig:
         case stio:
-        case retrn:
         case setto: {
             // Cool Hack to call methods that don't need args
             calc_method method = inst_to_func[byte.inst];
@@ -189,6 +194,8 @@ void Interpreter(Bytecode byte, int offset) {
             ExecStack.callFunc(offset);
             break;
         }
+        case retrn:
+            ExecStack.retfuncData(offset);
         case stop: {
             break;
         }
@@ -202,14 +209,19 @@ void Interpreter(Bytecode byte, int offset) {
 void CodeExec(int EOS) {
     // Execute instruction line by line
     while (true) {
-        if (CobaluStack.SP() != EOS) {
+        if (CobaluStack.SP() != EOS && !CobaluStack.RET()) {
             Interpreter(CobaluStack.Return(), CobaluStack.SP());
             CobaluStack.Advance();
+
+            if (CobaluStack.Size() >= 80) {
+                break;
+            }
         } else {
+            CobaluStack.SetRet(0);
             break;
         }
     }
-    
+
     // If there is any error show all of them
     if (ErLogs.NumErrors()) {
        ErLogs.ShowErrors();
@@ -225,7 +237,7 @@ void InitVM() {
     Bytecode byte;
     byte.inst = endstk;
     CobaluStack.Push(byte);
-    CobaluStack.SetEOS(-1);
+    CobaluStack.SetEOS();
 
     CodeExec(CobaluStack.Size() - 1);
     #ifdef DEBUG

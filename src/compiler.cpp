@@ -361,7 +361,7 @@ void FunctionAST::codegen() {
     CobaluStack.Push(start);
 
     // Set the variables
-    for (int i=0; i< Var.size(); i++) {
+    for (int i=Var.size()-1; i >= 0; i--) {
         Bytecode byte;
         byte.inst = varst;
         byte.offset = ParentBlock->varSetOffset(Var[i]) + 1;

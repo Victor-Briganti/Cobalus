@@ -54,6 +54,7 @@ class InstructionStack {
     std::vector<Bytecode> Stack;
     int sp; // stack pointer
     int eos; // end of stack
+    int ret; // return state
 
     public:
         InstructionStack() {}
@@ -61,8 +62,10 @@ class InstructionStack {
         // Stack Operations
         void Push(Bytecode);
         int Size();
-        void SetEOS(int);
+        void SetEOS();
         int EOS();
+        void SetRet(int);
+        int RET();
         void ChangeValue(Value, int);
         void Insert(Bytecode, int);
         Bytecode Return(int);

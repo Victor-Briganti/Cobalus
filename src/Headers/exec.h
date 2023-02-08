@@ -49,6 +49,6 @@ class Calculus {
         // Function
         void funcGen(int);
         void callFunc(int);
-        void retfuncData();
+        void retfuncData(int);
 };
     

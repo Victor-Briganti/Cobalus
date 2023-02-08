@@ -247,11 +247,13 @@ void Calculus::eqData() {
     }
     if (Right.index() == str){
         Right = std::get<std::string>(Left) == std::get<std::string>(Right);
+        printf("%d\n", std::get<bool>(Right));
         Calc.push_back(Right);
         return;
     }
     if (Right.index() == boo && Right.index() == boo){
         Right = std::get<bool>(Left) == std::get<bool>(Right);
+        printf("%d\n", std::get<bool>(Right));
         Calc.push_back(Right);
         return;
     }
@@ -551,6 +553,7 @@ void Calculus::evalCondition() {
 void Calculus::funcGen(int offset) {
     Bytecode byte = CobaluStack.Return(offset);
 
+    // In the first interaction we just write the function
     if (!std::get<double>(byte.data)) {
         while(true) {
             CobaluStack.Advance();
@@ -565,6 +568,7 @@ void Calculus::funcGen(int offset) {
     // Map for reassign offset
     std::unordered_map<int, int> reasoff;
 
+    // Saves the current place so we can return to it
     int fp = CobaluStack.Size() + 1;
     CobaluStack.Goto(offset);
     while (true) {
@@ -588,6 +592,7 @@ void Calculus::funcGen(int offset) {
         CobaluStack.Push(byte);
         CobaluStack.Advance();
     }
+    // Return to the start of the generate function and execute it
     CobaluStack.Goto(fp);
     CodeExec(CobaluStack.Size()-1);
 }
@@ -598,7 +603,7 @@ void Calculus::callFunc(int offset) {
 
     this->funcGen(byte.offset);
 
-    Calc.pop_back();
+    //Calc.pop_back();
 
     CobaluStack.Goto(offset);
 
@@ -606,6 +611,6 @@ void Calculus::callFunc(int offset) {
 }
 
 // Returns to the execution of the stack
-void Calculus::retfuncData() {
-    CobaluStack.SetEOS(CobaluStack.Size()-1);
+void Calculus::retfuncData(int currentoff) {
+    CobaluStack.SetRet(1);
 }

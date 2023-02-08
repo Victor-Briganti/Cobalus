@@ -1,6 +1,6 @@
 func test() { 
-    print(10);
+    print("ok");
     return 10+20;
 }
 
-print(test() + 1);
+print(test() + test());
