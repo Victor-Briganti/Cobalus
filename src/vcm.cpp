@@ -241,7 +241,7 @@ void InitVM() {
 
     CodeExec(CobaluStack.Size() - 1);
     #ifdef DEBUG
-        std::cout << std::left << std::setw(30) << "================ COBALUS STACK ================" << std::endl;
+        std::cout << std::left << std::setw(30) << "================ COBALU STACK ================" << std::endl;
         std::cout << std::left << std::setw(6) << "x" << "|";
         std::cout << std::left << std::setw(20) << "data";
         std::cout << std::left << std::setw(15) << "instruction";

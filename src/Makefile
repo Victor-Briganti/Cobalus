@@ -9,11 +9,11 @@ release: CFLAGS = -O3 -std=c++20
 all: release
 
 debug: $(OBJS)
-	$(CC) $(CDEBUG) -o cobalus $(OBJS)
+	$(CC) $(CDEBUG) -o cobalu $(OBJS)
 	make clean
 
 release: $(OBJS)
-	$(CC) $(CFLAGS) -o cobalus $(OBJS)
+	$(CC) $(CFLAGS) -o cobalu $(OBJS)
 	make clean
 
 %.o: %.cpp
