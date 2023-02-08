@@ -1,0 +1,6 @@
+func test() { 
+    print(10);
+    return 10+20;
+}
+
+print(test() + 1);

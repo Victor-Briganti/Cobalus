@@ -37,6 +37,7 @@ std::unordered_map<Instruction, std::string> inst_to_str = {
     {funcend, "funcend"},
     {callfunc, "callfunc"},
     {endstk, "endstk"},
+    {retrn, "retrn"},
 };
 #endif
 
@@ -57,6 +58,7 @@ std::unordered_map<Instruction, calc_method> inst_to_func = {
     {invsig, &Calculus::invsigData},
     {stio, &Calculus::printData},
     {setto, &Calculus::evalCondition},
+    {retrn, &Calculus::retfuncData},
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,8 +73,13 @@ int InstructionStack::Size() {
     return Stack.size();
 }
 
-void InstructionStack::SetEOS() {
-    eos = Stack.size() - 1;
+void InstructionStack::SetEOS(int eoval) {
+    if (eoval == -1){
+        eos = Stack.size() - 1;
+        return;
+    }
+    eos = eoval;
+
 }
 
 int InstructionStack::EOS() {
@@ -159,6 +166,7 @@ void Interpreter(Bytecode byte, int offset) {
         case negte:
         case invsig:
         case stio:
+        case retrn:
         case setto: {
             // Cool Hack to call methods that don't need args
             calc_method method = inst_to_func[byte.inst];
@@ -217,7 +225,7 @@ void InitVM() {
     Bytecode byte;
     byte.inst = endstk;
     CobaluStack.Push(byte);
-    CobaluStack.SetEOS();
+    CobaluStack.SetEOS(-1);
 
     CodeExec(CobaluStack.Size() - 1);
     #ifdef DEBUG

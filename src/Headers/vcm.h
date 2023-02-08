@@ -37,6 +37,7 @@ enum Instruction {
     funcend,
     stop, // used to separated expressions in args
     callfunc,
+    retrn,
 
     // Goto
     setto,
@@ -60,7 +61,7 @@ class InstructionStack {
         // Stack Operations
         void Push(Bytecode);
         int Size();
-        void SetEOS();
+        void SetEOS(int);
         int EOS();
         void ChangeValue(Value, int);
         void Insert(Bytecode, int);

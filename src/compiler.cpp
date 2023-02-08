@@ -408,6 +408,20 @@ void CallFuncAST::codegen() {
 }
 
 void ReturnAST::codegen() {
+    // Generates the code
+    if (!RetVal) {
+        Bytecode byte;
+        byte.inst = none;
+        byte.data = nullptr;
+        CobaluStack.Push(byte);
+    } else {
+        RetVal->codegen();
+    }
+    // Push the return
+    Bytecode byte;
+    byte.inst = retrn;
+    CobaluStack.Push(byte);
+
     return;
 }
 

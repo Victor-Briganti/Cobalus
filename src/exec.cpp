@@ -598,7 +598,14 @@ void Calculus::callFunc(int offset) {
 
     this->funcGen(byte.offset);
 
+    Calc.pop_back();
+
     CobaluStack.Goto(offset);
 
     return;
+}
+
+// Returns to the execution of the stack
+void Calculus::retfuncData() {
+    CobaluStack.SetEOS(CobaluStack.Size()-1);
 }
