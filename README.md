@@ -18,6 +18,7 @@ from "CC = clang++" to "CC = g++"
 Compiling:
 '''
 $ make
+
 $ make debug # if you want to be able to debug the language with lldb or gdb
 '''
 
